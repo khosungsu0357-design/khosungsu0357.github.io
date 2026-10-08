@@ -1,0 +1,18 @@
+{
+  "name": "naver-blog-automation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "네이버 블로그 글 작성/발행 자동화 (Playwright + SmartEditor ONE)",
+  "type": "module",
+  "bin": { "nbg": "./src/cli.mjs" },
+  "scripts": {
+    "login": "node src/cli.mjs login",
+    "doctor": "node src/cli.mjs doctor",
+    "publish": "node src/cli.mjs publish",
+    "new": "node src/cli.mjs new"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  },
+  "engines": { "node": ">=20" }
+}

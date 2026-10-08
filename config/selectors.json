@@ -1,0 +1,127 @@
+{
+  "_comment": [
+    "네이버 SmartEditor ONE 은 클래스명에 해시가 붙어 수시로 바뀝니다 (예: publish_btn__m9KHH).",
+    "그래서 타깃마다 후보 선택자를 배열로 두고, 위에서부터 먼저 잡히는 것을 씁니다.",
+    "깨졌을 때는 `npm run doctor` 로 어떤 타깃이 못 잡히는지 확인하고 이 파일만 고치면 됩니다.",
+    "앞쪽에는 안정적인 구조/텍스트 기반 선택자, 뒤쪽에 해시 클래스 선택자를 둡니다."
+  ],
+
+  "writeUrl": "https://blog.naver.com/PostWriteForm.naver?blogId={blogId}",
+
+  "frame": {
+    "_comment": "구 프레임셋으로 리다이렉트되는 경우 에디터가 이 iframe 안에 있습니다.",
+    "mainFrame": ["iframe#mainFrame", "iframe[name='mainFrame']"]
+  },
+
+  "popups": {
+    "_comment": "에디터 진입 직후 뜨는 방해 레이어들. 전부 '있으면 닫고 없으면 통과'.",
+    "draftRestoreCancel": [
+      ".se-popup-button-cancel",
+      ".se-popup-alert .se-popup-button-cancel",
+      "button:has-text('취소')"
+    ],
+    "helpPanelClose": [
+      ".se-help-panel-close-button",
+      "button.se-help-panel-close-button",
+      ".se-help-panel button[class*='close']"
+    ],
+    "genericLayerClose": [
+      ".se-popup-close",
+      "button[class*='btn_close']",
+      "a[class*='btn_close']"
+    ]
+  },
+
+  "editor": {
+    "titleParagraph": [
+      ".se-section-documentTitle .se-text-paragraph",
+      ".se-documentTitle .se-text-paragraph",
+      ".se-title-text .se-text-paragraph",
+      "[data-a11y-title='제목'] .se-text-paragraph"
+    ],
+    "bodyParagraph": [
+      ".se-component.se-text:not(.se-documentTitle) .se-text-paragraph",
+      ".se-section-text .se-text-paragraph",
+      ".se-main-container .se-component.se-text .se-text-paragraph"
+    ],
+    "canvas": [".se-main-container", ".se-viewer", "#SE-"]
+  },
+
+  "toolbar": {
+    "_comment": "이미지 업로드는 toolbar 의 사진 버튼이 여는 file chooser 로 처리합니다.",
+    "imageButton": [
+      "button[data-name='image']",
+      "button[data-log='ngd.image']",
+      ".se-toolbar button[class*='image']",
+      "button[title='사진']"
+    ],
+    "imageFileInput": ["input[type='file'][accept*='image']", "input[type='file']"]
+  },
+
+  "publish": {
+    "openButton": [
+      ".se-toolbar button:has-text('발행')",
+      "button:has-text('발행')",
+      "[class^='publish_btn__']",
+      "a:has-text('발행')"
+    ],
+    "layer": ["[class^='publish_option_area']", ".layer_publish", "[class*='publish_layer']"],
+
+    "categoryButton": [
+      "[class^='selectbox_button__']",
+      "button[class*='selectbox']",
+      "button:has-text('카테고리')"
+    ],
+    "categoryOption": [
+      "[class^='selectbox_list__'] li:has-text('{category}')",
+      "ul[class*='selectbox'] li:has-text('{category}')"
+    ],
+
+    "tagInput": [
+      "#tag-input",
+      "input#tag-input",
+      "[class^='tag_input__']",
+      "input[placeholder*='태그']"
+    ],
+
+    "openPublicRadio": [
+      "label:has-text('전체공개') input[type='radio']",
+      "input[value='PUBLIC']",
+      "label:has-text('전체공개')"
+    ],
+    "privateRadio": [
+      "label:has-text('비공개') input[type='radio']",
+      "input[value='PRIVATE']",
+      "label:has-text('비공개')"
+    ],
+
+    "scheduleRadio": [
+      "label:has-text('예약') input[type='radio']",
+      "input[value='RESERVE']",
+      "label:has-text('예약')"
+    ],
+    "scheduleDateInput": [
+      "input[class*='date']",
+      "[class^='date_picker'] input",
+      "input[placeholder*='날짜']"
+    ],
+    "scheduleHourSelect": ["select[class*='hour']", "[class*='time'] select:nth-of-type(1)"],
+    "scheduleMinuteSelect": ["select[class*='minute']", "[class*='time'] select:nth-of-type(2)"],
+
+    "confirmButton": [
+      "[class^='confirm_btn__']",
+      "button[class*='confirm']:has-text('발행')",
+      "button:has-text('발행'):below([class^='publish_option_area'])"
+    ]
+  },
+
+  "loggedOutMarkers": {
+    "_comment": "이 중 하나라도 보이면 세션이 끊긴 것으로 판단하고 즉시 중단합니다.",
+    "any": [
+      "input#id[name='id']",
+      "#frmNIDLogin",
+      "form[action*='nidlogin']",
+      "text=로그인이 필요합니다"
+    ]
+  }
+}
