@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>한옥 한 채 — 대목수 이야기</title>
+<meta name="description" content="터 닦기부터 기와 잇기까지, 열 가지 공정으로 한옥을 짓는 방치형 건축 게임">
+<style>
+:root{
+  --paper:#f3ead8; --paper2:#e9dec6; --ink:#2b2622; --ink2:#6b6157; --line:#cdbf9f;
+  --red:#b5422c; --green:#3f7a5a; --blue:#2f5d8a; --wood:#7a4a2b; --gold:#b98a2e;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  line-height:1.5;-webkit-tap-highlight-color:transparent;padding-bottom:env(safe-area-inset-bottom)}
+.wrap{max-width:900px;margin:0 auto;padding:14px 16px 40px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:"Nanum Myeongjo","Noto Serif KR","AppleMyungjo",serif;font-size:26px;margin:0;letter-spacing:.02em}
+h1 small{font-size:13px;font-weight:400;color:var(--ink2);margin-left:8px}
+h2{font-family:"Nanum Myeongjo","Noto Serif KR","AppleMyungjo",serif;font-size:17px;margin:0 0 8px}
+.res{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chip{display:flex;align-items:center;gap:6px;background:#fffaf0;border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 4px;font-size:14px;font-variant-numeric:tabular-nums}
+.chip i{font-style:normal;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;color:#fff;font-size:12px;font-family:serif}
+.chip em{font-style:normal;color:var(--ink2);font-size:11px}
+.b-wood{background:var(--wood)}.b-stone{background:#7d7a73}.b-clay{background:#b07a3c}.b-tile{background:#3b4048}.b-hanji{background:#a99a78}.b-coin{background:var(--gold)}
+.stagebox{position:relative;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:#cfe3ea}
+canvas{display:block;width:100%;height:auto;touch-action:manipulation;cursor:pointer}
+.drop{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:none}
+.card{background:#fffaf0;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:12px}
+.dots{display:flex;gap:4px;margin:2px 0 10px}
+.dots span{flex:1;height:8px;border-radius:2px;background:var(--paper2);border:1px solid var(--line)}
+.dots span.cur{border-color:var(--red);background:#f6d9cf}
+.now{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.now .txt{flex:1 1 300px;min-width:0}
+.now h2 span{font-family:inherit;font-size:13px;color:var(--ink2);font-weight:400;margin-left:6px}
+.fact{font-size:13.5px;color:var(--ink2);margin:0 0 8px}
+.cost{display:flex;gap:6px;flex-wrap:wrap}
+.cost .chip.lack{border-color:var(--red);color:var(--red)}
+button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--ink);background:#fff;border-radius:8px;padding:8px 12px;min-height:40px}
+button:disabled{opacity:.42;cursor:not-allowed}
+button:not(:disabled):active{transform:translateY(1px)}
+.primary{background:var(--red);border-color:var(--red);color:#fff;font-weight:700;padding:10px 22px;font-size:16px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.cols{grid-template-columns:1fr}h1{font-size:22px}}
+.gather{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.gather button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;font-size:13px}
+.gather button.need{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.gather b{font-family:serif;font-size:20px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px dashed var(--line);font-size:14px}
+.row:first-of-type{border-top:0}
+.row small{color:var(--ink2);display:block;font-size:12px}
+.row button{white-space:nowrap;font-size:13px;padding:6px 10px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12px;color:var(--ink2);gap:8px;flex-wrap:wrap}
+.foot button{font-size:12px;min-height:30px;padding:4px 8px;border-color:var(--line)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center;z-index:5}
+.toast.on{opacity:.95}
+.modal{position:fixed;inset:0;background:rgba(30,25,20,.55);display:none;place-items:center;padding:16px;z-index:10}
+.modal.on{display:grid}
+.modal div{background:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:22px 24px;max-width:380px;text-align:center}
+.modal h2{font-size:24px}
+.modal .grade{font-family:"Nanum Myeongjo","Noto Serif KR",serif;font-size:34px;color:var(--red);margin:6px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>한옥 한 채<small>대목수 이야기</small></h1>
+    <div id="title2" style="font-size:13px;color:var(--ink2)"></div>
+  </header>
+  <div class="res" id="res"></div>
+
+  <div class="stagebox">
+    <canvas id="cv" width="800" height="450" aria-label="한옥 공사 현장"></canvas>
+    <button class="primary drop" id="drop">내려놓기 (Space)</button>
+  </div>
+
+  <section class="card">
+    <div class="dots" id="dots"></div>
+    <div class="now">
+      <div class="txt">
+        <h2 id="stName"></h2>
+        <p class="fact" id="stFact"></p>
+        <div class="cost" id="stCost"></div>
+      </div>
+      <button class="primary" id="build">착공</button>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section class="card">
+      <h2>자재 모으기</h2>
+      <div class="gather" id="gather"></div>
+    </section>
+    <section class="card">
+      <h2>일꾼</h2>
+      <div id="workers"></div>
+    </section>
+  </div>
+
+  <div class="foot">
+    <span>진행 상황은 이 브라우저에 자동 저장됩니다.</span>
+    <button id="reset">처음부터 다시</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div>
+  <h2 id="mTitle"></h2>
+  <div class="grade" id="mGrade"></div>
+  <p id="mText"></p>
+  <button class="primary" id="mNext">다음 집 짓기</button>
+</div></div>
+
+<script>
+'use strict';
+/* ---------- 데이터 ---------- */
+const RES = {
+  wood:{n:'목재',h:'木',job:'벌목꾼',rate:1,base:15},
+  stone:{n:'석재',h:'石',job:'석수',rate:1,base:15},
+  clay:{n:'황토',h:'土',job:'토수',rate:1,base:15},
+  tile:{n:'기와',h:'瓦',job:'와공',rate:.6,base:40},
+  hanji:{n:'한지',h:'紙',job:'지장',rate:.6,base:40},
+};
+const RK = Object.keys(RES);
+const STAGES = [
+  {n:'터 닦기',p:'달구',cost:{clay:20,stone:10},land:330,sz:[46,30],col:'#8d8a82',
+   fact:'집터를 단단히 다지는 일. 여럿이 줄을 잡고 달굿돌을 들었다 놓으며 지경소리를 불렀습니다.'},
+  {n:'기단 쌓기',p:'장대석',cost:{stone:40},land:318,sz:[96,16],col:'#9c978c',
+   fact:'빗물과 땅의 습기를 피하려고 집을 지면보다 한 단 높이 올려 앉힙니다.'},
+  {n:'주춧돌 놓기',p:'주춧돌',cost:{stone:30},land:310,sz:[40,18],col:'#aaa59a',
+   fact:'자연석을 그대로 쓰면 덤벙주초. 기둥 밑동을 돌 생김새대로 깎아 맞추는 일을 그렝이질이라 합니다.'},
+  {n:'기둥 세우기',p:'기둥',cost:{wood:60},land:265,sz:[14,84],col:'#7a4a2b',
+   fact:'모서리 기둥을 조금 높게 세우는 귀솟음, 가운데를 불룩하게 깎는 배흘림이 집을 반듯해 보이게 합니다.'},
+  {n:'보·도리 걸기',p:'대들보',cost:{wood:90},land:215,sz:[120,16],col:'#6b4226',
+   fact:'못 없이 짜 맞추는 결구. 가장 높은 마룻도리를 올리는 날 상량식을 치르고 상량문을 적어 넣습니다.'},
+  {n:'서까래 걸기',p:'서까래',cost:{wood:120},land:185,sz:[110,10],col:'#8a5a36',
+   fact:'깊은 처마는 높은 여름 해는 가리고 낮은 겨울 해는 방 안 깊숙이 들입니다.'},
+  {n:'기와 잇기',p:'기와',cost:{tile:150,clay:40},land:165,sz:[70,18],col:'#3b4048',
+   fact:'넓적한 암키와를 깔고 그 사이를 둥근 수키와로 덮습니다. 처마 끝은 막새로 마감합니다.'},
+  {n:'벽체·창호 달기',p:'문짝',cost:{clay:80,hanji:60},land:265,sz:[40,70],col:'#f1e8d0',
+   fact:'대나무·싸리로 외를 엮고 흙을 발라 벽을 치고, 문살에는 한지를 발라 빛과 바람이 은은히 드나듭니다.'},
+  {n:'온돌·마루 놓기',p:'구들장',cost:{stone:80,wood:80},land:312,sz:[80,12],col:'#8d8a82',
+   fact:'아궁이의 열기가 고래를 지나 구들장을 데우고 굴뚝으로 빠집니다. 마루는 여름, 온돌은 겨울의 자리입니다.'},
+  {n:'마당 가꾸기',p:'장독',cost:{stone:60,clay:60,wood:40},land:345,sz:[34,40],col:'#4a332a',
+   fact:'마당은 비워 둡니다. 볕이 마당에 반사되어 처마 밑 깊은 방까지 밝혀 주기 때문입니다.'},
+];
+const HOUSE = ['세 칸 민가','다섯 칸 반가','일곱 칸 대갓집'];
+const SEASON = ['봄','여름','가을','겨울'];
+const mult = t => t<3 ? [1,3,8][t] : 8*Math.pow(2,t-2);
+const houseName = t => t<3 ? HOUSE[t] : HOUSE[2]+' '+(t-1)+'호';
+
+/* ---------- 상태 ---------- */
+const KEY='hanok-save-v1';
+const fresh = () => ({res:{wood:0,stone:0,clay:0,tile:0,hanji:0},coin:30,
+  workers:{wood:0,stone:0,clay:0,tile:0,hanji:0},tool:1,tier:0,stage:0,quals:[],houses:[],play:0,last:Date.now()});
+let S = fresh();
+let mg = null;            // 미니게임 진행 상태
+let floats = [];          // 떠오르는 글자
+function load(){
+  try{
+    const d = JSON.parse(localStorage.getItem(KEY)||'null');
+    if(d && d.res){ S = Object.assign(fresh(), d); S.res=Object.assign(fresh().res,d.res); S.workers=Object.assign(fresh().workers,d.workers); return true; }
+  }catch(e){}
+  return false;
+}
+function save(){ S.last=Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+const $ = id => document.getElementById(id);
+const fmt = v => v>=1e6 ? (v/1e6).toFixed(1)+'M' : v>=1e4 ? (v/1e3).toFixed(1)+'k' : String(Math.floor(v));
+const clickGain = () => 1 + S.tool;
+const hireCost = k => Math.round(RES[k].base*Math.pow(1.18,S.workers[k]));
+const toolCost = () => Math.round(50*Math.pow(2,S.tool-1));
+const coinRate = () => S.houses.reduce((a,h)=>a+(0.3+h.q)*mult(h.tier),0);
+const stageCost = () => { const o={}, c=STAGES[S.stage].cost, m=mult(S.tier); for(const k in c) o[k]=Math.round(c[k]*m); return o; };
+const canBuild = () => { const c=stageCost(); return Object.keys(c).every(k=>S.res[k]>=c[k]); };
+function produce(dt){
+  for(const k of RK) S.res[k] += S.workers[k]*RES[k].rate*dt;
+  S.coin += coinRate()*dt;
+}
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),2600); }
+
+/* ---------- UI ---------- */
+function buildUI(){
+  $('res').innerHTML = RK.map(k=>`<span class="chip"><i class="b-${k}">${RES[k].h}</i><span id="r-${k}">0</span><em id="rr-${k}"></em></span>`).join('')
+    + `<span class="chip"><i class="b-coin">錢</i><span id="r-coin">0</span><em id="rr-coin"></em></span>`;
+  $('gather').innerHTML = RK.map(k=>`<button data-g="${k}"><b>${RES[k].h}</b><span>${RES[k].n} <span id="g-${k}"></span></span></button>`).join('');
+  $('workers').innerHTML = RK.map(k=>`<div class="row"><span>${RES[k].job} <b id="w-${k}">0</b>명<small>${RES[k].n} 초당 ${RES[k].rate}</small></span><button data-h="${k}" id="h-${k}"></button></div>`).join('')
+    + `<div class="row"><span>연장 벼리기 <b id="w-tool">1</b>단<small>손으로 모으는 양 +1</small></span><button id="h-tool"></button></div>`;
+  $('dots').innerHTML = STAGES.map(()=>'<span></span>').join('');
+  $('gather').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; S.res[b.dataset.g]+=clickGain(); refresh(); });
+  $('workers').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    if(b.id==='h-tool'){ const c=toolCost(); if(S.coin>=c){ S.coin-=c; S.tool++; } }
+    else { const k=b.dataset.h, c=hireCost(k); if(S.coin>=c){ S.coin-=c; S.workers[k]++; } }
+    refresh(); save();
+  });
+  $('build').addEventListener('click',startStage);
+  $('drop').addEventListener('click',e=>{ e.stopPropagation(); drop(); });
+  $('cv').addEventListener('click',drop);
+  addEventListener('keydown',e=>{ if(e.code==='Space' && mg){ e.preventDefault(); drop(); } });
+  $('reset').addEventListener('click',()=>{ if(confirm('지금까지 지은 집과 자재가 모두 사라집니다. 처음부터 다시 할까요?')){ S=fresh(); mg=null; save(); refresh(); } });
+  $('mNext').addEventListener('click',()=>{ $('modal').classList.remove('on'); refresh(); });
+}
+function refresh(){
+  for(const k of RK){
+    $('r-'+k).textContent = fmt(S.res[k]);
+    const r=S.workers[k]*RES[k].rate; $('rr-'+k).textContent = r? '+'+(+r.toFixed(1))+'/초':'';
+    $('g-'+k).textContent = '+'+clickGain();
+    $('w-'+k).textContent = S.workers[k];
+    const c=hireCost(k), b=$('h-'+k); b.textContent='고용 '+fmt(c)+'전'; b.disabled = S.coin<c;
+  }
+  $('r-coin').textContent = fmt(S.coin);
+  const cr=coinRate(); $('rr-coin').textContent = cr? '+'+cr.toFixed(1)+'/초':'';
+  $('w-tool').textContent = S.tool;
+  const tb=$('h-tool'); tb.textContent='벼리기 '+fmt(toolCost())+'전'; tb.disabled = S.coin<toolCost();
+  $('title2').textContent = `${houseName(S.tier)} 짓는 중 · 완공 ${S.houses.length}채`;
+  const st=STAGES[S.stage], cost=stageCost();
+  $('stName').innerHTML = `${S.stage+1}. ${st.n}<span>${S.stage+1}/10 공정</span>`;
+  $('stFact').textContent = st.fact;
+  $('stCost').innerHTML = Object.keys(cost).map(k=>`<span class="chip${S.res[k]<cost[k]?' lack':''}"><i class="b-${k}">${RES[k].h}</i>${RES[k].n} ${fmt(Math.min(S.res[k],cost[k]))}/${fmt(cost[k])}</span>`).join('');
+  const bb=$('build'); bb.disabled = !!mg || !canBuild(); bb.textContent = mg ? '공사 중…' : '착공';
+  document.querySelectorAll('#gather button').forEach(b=>b.classList.toggle('need', cost[b.dataset.g]!==undefined && S.res[b.dataset.g]<cost[b.dataset.g]));
+  [...$('dots').children].forEach((d,i)=>{
+    d.className = i===S.stage ? 'cur' : '';
+    d.style.background = i<S.stage ? (S.quals[i]>=.9?'#b5422c':S.quals[i]>=.6?'#3f7a5a':'#8a8377') : '';
+  });
+  $('drop').style.display = mg && !mg.fall ? 'block' : 'none';
+}
+
+/* ---------- 미니게임: 먹줄에 맞춰 내려놓기 ---------- */
+const SWING=250;
+function startStage(){
+  if(mg || !canBuild()) return;
+  mg = {round:0, x:-SWING, dir:1, speed:300+S.stage*22, fall:null, scores:[], wait:0};
+  refresh();
+  toast('먹줄(가운데 점선)에 맞춰 '+STAGES[S.stage].p+'을(를) 내려놓으세요');
+}
+function drop(){
+  if(!mg || mg.fall || mg.wait>0) return;
+  const off=Math.abs(mg.x);
+  const sc = off<=8 ? 1 : Math.max(0, 1-(off-8)/150);
+  mg.fall = {y:78, score:sc};
+  refresh();
+}
+function tickMG(dt){
+  if(!mg) return;
+  if(mg.wait>0){ mg.wait-=dt; if(mg.wait<=0) nextRound(); return; }
+  if(mg.fall){
+    mg.fall.y += 900*dt;
+    const land=STAGES[S.stage].land - STAGES[S.stage].sz[1]/2;
+    if(mg.fall.y>=land){
+      mg.fall.y=land; const sc=mg.fall.score; mg.scores.push(sc);
+      floats.push({x:400+mg.x, y:land-30, t:0, txt: sc>=.95?'딱 맞았다!':sc>=.7?'좋아요':sc>=.4?'조금 비뚤':'어긋났다', col: sc>=.95?'#b5422c':sc>=.7?'#2f6b4c':'#5b544c'});
+      mg.wait=.55;
+    }
+    return;
+  }
+  mg.x += mg.dir*mg.speed*dt;
+  if(mg.x>SWING){ mg.x=SWING; mg.dir=-1; } else if(mg.x<-SWING){ mg.x=-SWING; mg.dir=1; }
+}
+function nextRound(){
+  mg.round++; mg.fall=null;
+  if(mg.round<3){ mg.speed+=45; mg.x = (Math.random()<.5?-1:1)*SWING; mg.dir = mg.x<0?1:-1; refresh(); return; }
+  const q = mg.scores.reduce((a,b)=>a+b,0)/mg.scores.length;
+  const cost=stageCost(); for(const k in cost) S.res[k]=Math.max(0,S.res[k]-cost[k]);
+  const pay = Math.round(25*(S.stage+1)*mult(S.tier)*(0.5+q));
+  S.coin += pay; S.quals[S.stage]=q; S.stage++; mg=null;
+  if(S.stage>=STAGES.length) finishHouse(); else toast(`${STAGES[S.stage-1].n} 완료 · 솜씨 ${Math.round(q*100)}점 · 품삯 ${pay}전`);
+  save(); refresh();
+}
+function finishHouse(){
+  const q = S.quals.reduce((a,b)=>a+b,0)/S.quals.length, p=Math.round(q*100);
+  const grade = p>=90?'국보급':p>=75?'명품 한옥':p>=55?'반듯한 집':'소박한 집';
+  const name=houseName(S.tier);
+  S.houses.push({tier:S.tier,q});
+  $('mTitle').textContent = name+' 완공';
+  $('mGrade').textContent = grade;
+  $('mText').textContent = `평균 솜씨 ${p}점. 이 집은 마을에 남아 손님을 맞으며 초당 ${((0.3+q)*mult(S.tier)).toFixed(1)}전을 벌어 줍니다. 다음은 ${houseName(S.tier+1)}입니다.`;
+  S.tier++; S.stage=0; S.quals=[];
+  $('modal').classList.add('on');
+}
+
+/* ---------- 그리기 ---------- */
+const cv=$('cv'), c=cv.getContext('2d');
+function fit(){
+  const w=cv.clientWidth||800, d=Math.min(devicePixelRatio||1,2);
+  cv.width=Math.round(w*d); cv.height=Math.round(w*d*450/800);
+}
+const rr=(x,y,w,h,r)=>{ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); };
+const ell=(x,y,a,b)=>{ c.beginPath(); c.ellipse(x,y,a,b,0,0,Math.PI*2); };
+const hash=i=>{ const s=Math.sin(i*127.1+311.7)*43758.5453; return s-Math.floor(s); };
+
+// 집 한 채. 원점 = 집 가운데 바닥, y는 위쪽이 음수. st = 끝낸 공정 수.
+function drawHouse(tier, st, t, yard){
+  const v=Math.min(tier,2), n=[3,5,7][v], kw=n===7?64:70, W=n*kw, x0=-W/2, x1=W/2;
+  const pH=18, colH=92, topY=-pH-colH, mid=(n-1)/2;
+  const ov=34, lift=[6,14,18][v], eaveY=topY+4, ridgeY=topY-74-v*6, rw=v===0?W/2+8:W/2-20;
+  const eave=u=>[u*(W/2+ov), eaveY-lift*Math.abs(u*u*u)];
+  const ridge=u=>[u*rw, ridgeY-5*u*u];
+  if(st>=1){ c.fillStyle='#c9b48a'; ell(0,3,W/2+70,11); c.fill();
+    if(st<2){ c.strokeStyle='#8a6a3c'; c.lineWidth=1; c.setLineDash([5,4]); c.strokeRect(x0-10,-4,W+20,8); c.setLineDash([]);
+      c.fillStyle='#6b4226'; for(const x of [x0-10,x1+10]) c.fillRect(x-2,-16,4,16); } }
+  if(yard && st>=10){ // 담장
+    for(const [a,b] of [[x0-165,x0-50],[x1+50,x1+165]]){
+      c.fillStyle='#d9cba9'; c.fillRect(a,-36,b-a,36);
+      c.fillStyle='#9c978c'; for(let x=a+2;x<b-8;x+=14) { rr(x,-12,12,10,3); c.fill(); }
+      c.fillStyle='#3b4048'; c.fillRect(a-4,-44,b-a+8,9);
+    }
+  }
+  if(st>=9){ // 굴뚝과 연기
+    const gx=x1+ov+4; c.fillStyle='#b9a78a'; c.fillRect(gx,-78,16,78); c.fillStyle='#3b4048'; c.fillRect(gx-4,-86,24,9);
+    for(let k=0;k<5;k++){ const p=(t*.22+k/5)%1; c.fillStyle=`rgba(255,255,255,${.4*(1-p)})`; ell(gx+8+p*16+Math.sin(p*6+k)*4,-90-p*70,5+p*10,4+p*8); c.fill(); }
+  }
+  if(st>=2){ // 기단
+    c.fillStyle='#9c978c'; c.fillRect(x0-26,-pH,W+52,pH);
+    c.strokeStyle='#7d7a73'; c.lineWidth=1; c.beginPath();
+    for(let x=x0-26;x<=x1+26;x+=26){ c.moveTo(x,-pH); c.lineTo(x,0); } c.moveTo(x0-26,-pH); c.lineTo(x1+26,-pH); c.stroke();
+    c.fillStyle='#b5b0a4'; c.fillRect(-28,-8,56,8);
+  }
+  if(st>=9){ c.fillStyle='#2a2320'; c.beginPath(); c.arc(x0+kw/2,0,9,Math.PI,0); c.fill(); } // 아궁이
+  if(st>=3){ c.fillStyle='#b5b0a4'; for(let i=0;i<=n;i++){ rr(x0+i*kw-11,-pH-7,22,8,3); c.fill(); } }
+  if(st>=8){ // 벽체·창호
+    for(let i=0;i<n;i++){
+      const x=x0+i*kw+5, w=kw-10, y=topY+8, h=colH-15;
+      if(i===mid && n>3 || (n===3 && i===1)){ // 대청
+        c.fillStyle='#5b4634'; c.fillRect(x,y,w,h);
+        c.fillStyle='#f1e8d0'; c.fillRect(x+w/2-12,y+16,24,30); c.strokeStyle='#6b4226'; c.lineWidth=1.5; c.strokeRect(x+w/2-12,y+16,24,30);
+      } else {
+        c.fillStyle='#efe6d2'; c.fillRect(x,y,w,h);
+        const dx=x+8, dw=w-16, dy=y+10, dh=h-30;
+        c.fillStyle='#f8f1dc'; c.fillRect(dx,dy,dw,dh);
+        c.strokeStyle='#6b4226'; c.lineWidth=1; c.beginPath();
+        for(let k=1;k<5;k++){ c.moveTo(dx+dw*k/5,dy); c.lineTo(dx+dw*k/5,dy+dh); }
+        for(const f of [.15,.2,.48,.53,.8,.85]){ c.moveTo(dx,dy+dh*f); c.lineTo(dx+dw,dy+dh*f); }
+        c.stroke(); c.lineWidth=2.5; c.strokeRect(dx,dy,dw,dh); c.beginPath(); c.moveTo(dx+dw/2,dy); c.lineTo(dx+dw/2,dy+dh); c.stroke();
+        c.fillStyle='#8a5a36'; c.fillRect(x,y+h-14,w,14);
+      }
+    }
+  }
+  if(st>=4){ c.fillStyle='#7a4a2b'; for(let i=0;i<=n;i++) c.fillRect(x0+i*kw-5,topY,10,colH-7); }
+  if(st>=9){ c.fillStyle='#a9794a'; c.fillRect(x0-16,-pH-12,W+32,6); c.fillStyle='#7a4a2b'; for(let i=0;i<=n;i++) c.fillRect(x0+i*kw-3,-pH-6,6,6); }
+  if(st>=5){ // 보·도리
+    c.fillStyle='#6b4226'; c.fillRect(x0-10,topY-9,W+20,10);
+    if(st<7){ c.strokeStyle='#6b4226'; c.lineWidth=6; c.lineJoin='round'; c.beginPath();
+      c.moveTo(x0-10,topY-9); c.lineTo(0,ridgeY+8); c.lineTo(x1+10,topY-9);
+      c.moveTo(0,topY-9); c.lineTo(0,ridgeY+8);
+      c.moveTo(-W/4,topY-9); c.lineTo(-W/4,(topY+ridgeY)/2); c.lineTo(W/4,(topY+ridgeY)/2); c.lineTo(W/4,topY-9);
+      c.stroke(); }
+  }
+  if(st===6){ // 서까래 뼈대
+    c.strokeStyle='#a9794a'; c.lineWidth=3; c.beginPath(); const m=n*5;
+    for(let k=0;k<=m;k++){ const u=-1+2*k/m, a=ridge(u), b=eave(u); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); }
+    c.stroke();
+  }
+  if(st>=7){ // 지붕
+    const N=40;
+    c.strokeStyle='#8a5a36'; c.lineWidth=6; c.setLineDash([3,4]); c.beginPath();
+    for(let k=0;k<=N;k++){ const p=eave(-1+2*k/N); k?c.lineTo(p[0],p[1]+5):c.moveTo(p[0],p[1]+5); } c.stroke(); c.setLineDash([]);
+    const g=c.createLinearGradient(0,ridgeY,0,eaveY); g.addColorStop(0,'#4a4f58'); g.addColorStop(1,'#2e3238');
+    c.fillStyle=g; c.beginPath();
+    for(let k=0;k<=N;k++){ const p=eave(-1+2*k/N); k?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]); }
+    for(let k=N;k>=0;k--){ const p=ridge(-1+2*k/N); c.lineTo(p[0],p[1]); }
+    c.closePath(); c.fill();
+    c.strokeStyle='#23262b'; c.lineWidth=1.5; c.beginPath(); const m=n*7;
+    for(let k=0;k<=m;k++){ const u=-1+2*k/m, a=ridge(u), b=eave(u); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); }
+    c.stroke();
+    c.lineWidth=4; c.beginPath(); for(let k=0;k<=N;k++){ const p=eave(-1+2*k/N); k?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]); } c.stroke();
+    c.fillStyle='#565c66'; for(let k=0;k<=m;k++){ const p=eave(-1+2*k/m); ell(p[0],p[1],2.6,2.6); c.fill(); }
+    c.lineWidth=7; c.lineCap='round'; c.beginPath(); for(let k=0;k<=N;k++){ const p=ridge(-1+2*k/N); k?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]); } c.stroke(); c.lineCap='butt';
+  }
+  if(yard && st>=10){ // 마당
+    c.fillStyle='#b5b0a4'; for(let k=0;k<4;k++){ ell(0+(k%2?10:-8),18+k*13,20,5); c.fill(); }
+    const jx=x1+86; c.fillStyle='#9c978c'; c.fillRect(jx-34,-5,84,5);
+    for(const [dx,s] of [[-18,1],[10,1.25],[36,.8]]){ c.fillStyle='#4a332a'; ell(jx+dx,-5-15*s,11*s,15*s); c.fill(); c.fillStyle='#35241d'; ell(jx+dx,-5-29*s,8*s,3*s); c.fill(); }
+    const px=x0-108; c.strokeStyle='#5b4030'; c.lineWidth=8; c.lineCap='round'; c.beginPath(); c.moveTo(px,0); c.quadraticCurveTo(px-18,-50,px+8,-96); c.stroke(); c.lineCap='butt';
+    c.fillStyle='#2f5d44'; for(const [dx,dy,a,b] of [[-26,-96,34,12],[22,-112,38,13],[-2,-132,30,11]]){ ell(px+dx,dy,a,b); c.fill(); }
+  }
+}
+function drawScene(t){
+  const se=Math.floor(S.play/75)%4;
+  const sky=[['#cfe6ee','#f6ead9'],['#a9d6ee','#e9f3df'],['#e8d2ae','#f7e7cf'],['#c9d3dc','#eef1f2']][se];
+  let g=c.createLinearGradient(0,0,0,330); g.addColorStop(0,sky[0]); g.addColorStop(1,sky[1]); c.fillStyle=g; c.fillRect(0,0,800,450);
+  // 먼 산
+  const mc=[['#a9c2b4','#86a893'],['#8fb79a','#5f9772'],['#c7a886','#b0764a'],['#c3cbd2','#9fabb5']][se];
+  for(let L=0;L<2;L++){ c.fillStyle=mc[L]; c.beginPath(); c.moveTo(0,330);
+    for(let x=0;x<=800;x+=10) c.lineTo(x, 235+L*32 - 44*Math.sin(x*.006+L*2.1) - 20*Math.sin(x*.017+L)); c.lineTo(800,330); c.fill(); }
+  // 마을 (완공한 집)
+  const xs=[70,730,170,630,250,560], show=S.houses.slice(-6);
+  show.forEach((h,i)=>{ c.save(); c.translate(xs[i],300-(i>1?6:0)); c.scale(.17,.17); drawHouse(h.tier,10,t,false); c.restore(); });
+  // 땅
+  c.fillStyle=['#b9c79a','#9dbb7c','#c9b07a','#e9ecef'][se]; c.fillRect(0,300,800,150);
+  c.fillStyle=['#d8c69c','#d2c092','#d6bf8e','#f3f4f5'][se]; c.fillRect(0,326,800,124);
+  // 계절 나무
+  const tx=755; c.strokeStyle='#5b4030'; c.lineWidth=7; c.lineCap='round'; c.beginPath(); c.moveTo(tx,332); c.lineTo(tx-4,270); c.moveTo(tx-3,290); c.lineTo(tx-24,262); c.moveTo(tx-3,282); c.lineTo(tx+18,256); c.stroke(); c.lineCap='butt';
+  c.fillStyle=['#f2b8c6','#5f9c5a','#d9822b','rgba(255,255,255,.9)'][se];
+  for(const [dx,dy,r] of [[-26,-78,20],[16,-84,22],[-4,-100,24]]){ ell(tx+dx,332+dy,r,se===3?r*.35:r*.8); c.fill(); }
+  // 집
+  c.save(); c.translate(400,330); drawHouse(S.tier,S.stage,t,true); c.restore();
+  // 계절 입자
+  if(se!==1){ c.fillStyle=['#f6c3d0','', '#d9822b','#ffffff'][se];
+    for(let i=0;i<28;i++){ const sp=30+hash(i)*30, x=(hash(i+50)*800+t*(se===3?8:22)+Math.sin(t+i)*14)%800, y=(hash(i+90)*450+t*sp)%450;
+      ell(x,y,se===3?2.4:3.2,se===3?2.4:1.8); c.fill(); } }
+  // 미니게임
+  if(mg){
+    const st=STAGES[S.stage], [w,h]=st.sz;
+    c.strokeStyle='rgba(181,66,44,.85)'; c.lineWidth=2; c.setLineDash([7,6]); c.beginPath(); c.moveTo(400,58); c.lineTo(400,340); c.stroke(); c.setLineDash([]);
+    c.fillStyle='rgba(181,66,44,.12)'; c.fillRect(392,58,16,282);
+    const x=400+mg.x, y=mg.fall?mg.fall.y:78;
+    if(!mg.fall && mg.wait<=0){ c.strokeStyle='#5b544c'; c.lineWidth=1.5; c.beginPath(); c.moveTo(x,0); c.lineTo(x,y-h/2); c.stroke(); }
+    c.fillStyle=st.col; rr(x-w/2,y-h/2,w,h,4); c.fill(); c.strokeStyle='#2b2622'; c.lineWidth=1.5; c.stroke();
+    c.fillStyle='#2b2622'; c.font='bold 15px sans-serif'; c.textAlign='center';
+    c.fillText(`${st.p} ${Math.min(mg.round+1,3)}/3`,400,34);
+  }
+  for(const f of floats){ c.globalAlpha=Math.max(0,1-f.t/1.1); c.fillStyle=f.col; c.font='bold 20px sans-serif'; c.textAlign='center'; c.fillText(f.txt,f.x,f.y-f.t*34); }
+  c.globalAlpha=1;
+  c.fillStyle='rgba(43,38,34,.7)'; c.font='14px serif'; c.textAlign='left'; c.fillText(SEASON[se],14,24);
+}
+
+/* ---------- 루프 ---------- */
+let prev=0, uiAcc=0, saveAcc=0;
+function frame(now){
+  const dt=Math.min(.1,(now-prev)/1000||0); prev=now;
+  S.play+=dt; produce(dt); tickMG(dt);
+  floats.forEach(f=>f.t+=dt); floats=floats.filter(f=>f.t<1.1);
+  uiAcc+=dt; if(uiAcc>.25){ uiAcc=0; refresh(); }
+  saveAcc+=dt; if(saveAcc>5){ saveAcc=0; save(); }
+  const k=cv.width/800; c.setTransform(k,0,0,k,0,0); drawScene(now/1000);
+  requestAnimationFrame(frame);
+}
+buildUI();
+if(load()){
+  const away=Math.min(7200,(Date.now()-S.last)/1000);
+  if(away>30){ produce(away); toast(`자리를 비운 ${Math.round(away/60)}분 동안 일꾼들이 자재를 모아 두었습니다`); }
+}
+fit(); addEventListener('resize',fit);
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) save();
+  else { const away=Math.min(7200,(Date.now()-S.last)/1000); if(away>5) produce(away); }
+});
+refresh(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

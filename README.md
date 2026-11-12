@@ -155,3 +155,7 @@ src/doctor.mjs          선택자 점검
 src/sel.mjs             후보 선택자 해석기
 posts/                  원고 (.md) 와 images/
 ```
+
+## 한옥 한 채 (게임)
+
+`hanok/index.html` — 터 닦기부터 마당 가꾸기까지 열 가지 공정으로 한옥을 짓는 방치형 건축 게임. 빌드 과정 없이 파일 하나로 동작하며, 브라우저에서 바로 열거나 GitHub Pages의 `/hanok/` 경로로 접속한다.
