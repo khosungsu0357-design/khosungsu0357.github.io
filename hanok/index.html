@@ -122,6 +122,12 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
 .title .plaque{padding:14px 44px 16px;margin-bottom:20px}
 .title .plaque h1{font-size:46px}
 .title .plaque p{font-size:14px}
+.photo{flex:0 0 230px;width:230px;height:auto;aspect-ratio:3/2;object-fit:cover;border:5px solid var(--wood);box-shadow:inset 0 0 0 1px #1c1009,0 0 0 1.5px #1c1009,0 4px 8px rgba(50,30,10,.25);background:var(--hanji2)}
+@media (max-width:640px){.photo{flex:1 1 100%;width:100%}}
+.master{display:flex;gap:14px;align-items:center;max-width:560px;margin:18px auto 0}
+.master img{flex:none;width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--wood);box-shadow:0 0 0 2px var(--hanji3),0 0 0 3.5px var(--wood3)}
+.master p{margin:0;font-size:15px;background:var(--hanji3);border:1.5px solid var(--line);padding:10px 14px;position:relative}
+.master b{display:block;font-family:var(--brush);font-weight:400;color:var(--red);font-size:14px;margin-bottom:2px}
 .how{list-style:none;margin:18px auto 0;padding:0;max-width:520px;font-size:15px}
 .how li{display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line)}
 .how b{flex:none;font-family:var(--brush);font-weight:400;width:30px;height:30px;display:grid;place-items:center;background:var(--red);color:#fff3d6;font-size:17px}
@@ -137,6 +143,7 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
     <div class="plaque"><h1>한옥 한 채</h1><p>대목수 이야기 · 내 손으로 짓는 집</p></div>
     <div class="eave"></div>
     <div class="stagebox"><canvas id="tcv" width="800" height="450" aria-label="완성된 한옥의 모습"></canvas></div>
+    <div class="master"><img src="img/daemoksu.jpg" alt="대목수" width="96" height="96"><p><b>대목수</b>“어서 오시게. 집은 터를 보고, 사람을 보고 짓는 법이지. 자네가 살고 싶은 집을 말해 보게.”</p></div>
     <ol class="how">
       <li><b>一</b>칸 수와 지붕, 창살을 골라 내 집을 설계합니다</li>
       <li><b>二</b>자재를 모으고 먹줄에 맞춰 열 가지 공정을 올립니다</li>
@@ -168,6 +175,7 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
   <section class="card" id="buildCard">
     <div class="dots" id="dots"></div>
     <div class="now">
+      <img class="photo" id="stImg" alt="" width="720" height="480">
       <div class="txt">
         <h2 id="stName"></h2>
         <p class="fact" id="stFact"></p>
@@ -217,8 +225,8 @@ const RES = {
   wood:{n:'목재',h:'木',job:'벌목꾼',rate:1,base:15,img:1},
   stone:{n:'석재',h:'石',job:'석수',rate:1,base:15,img:1},
   clay:{n:'황토',h:'土',job:'토수',rate:1,base:15,img:1},
-  tile:{n:'기와',h:'瓦',job:'와공',rate:.6,base:40},
-  hanji:{n:'한지',h:'紙',job:'지장',rate:.6,base:40},
+  tile:{n:'기와',h:'瓦',job:'와공',rate:.6,base:40,img:1},
+  hanji:{n:'한지',h:'紙',job:'지장',rate:.6,base:40,img:1},
 };
 const RK = Object.keys(RES);
 const STAGES = [
@@ -865,6 +873,7 @@ function refresh(){
     const st=stageInfo(S.cur.stage,S.cur.d), cost=stageCost();
     $('stName').innerHTML = `${S.cur.stage+1}. ${st.n}<span>${houseName(S.cur.d)} · ${S.cur.stage+1}/10 공정</span>`;
     $('stFact').textContent = st.fact;
+    const ph='img/'+(st===THATCH?'s7t':'s'+(S.cur.stage+1))+'.jpg', im=$('stImg'); if(im.getAttribute('src')!==ph){ im.src=ph; im.alt=st.n+' 장면'; }
     $('stCost').innerHTML = Object.keys(cost).map(k=>`<span class="chip${S.res[k]<cost[k]?' lack':''}"><i class="b-${k}">${RES[k].h}</i>${RES[k].n} ${fmt(Math.min(S.res[k],cost[k]))}/${fmt(cost[k])}</span>`).join('');
     const bb=$('build'); bb.disabled = !!mg || !canBuild(); bb.textContent = mg ? '공사 중…' : '착공';
     document.querySelectorAll('#gather button').forEach(b=>b.classList.toggle('need', cost[b.dataset.g]!==undefined && S.res[b.dataset.g]<cost[b.dataset.g]));
