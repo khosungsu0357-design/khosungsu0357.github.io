@@ -22,7 +22,7 @@ html,body{margin:0}
 body{background:var(--hanji) var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.55;-webkit-tap-highlight-color:transparent;padding-bottom:env(safe-area-inset-bottom)}
 /* 단청 띠 */
 body::before{content:"";display:block;height:12px;border-bottom:2px solid var(--wood2);background:var(--dancheong)}
-.wrap{max-width:900px;margin:0 auto;padding:16px 16px 44px}
+.wrap{max-width:1180px;margin:0 auto;padding:16px 16px 44px}
 /* 현판 */
 .plaque{position:relative;margin:6px auto 14px;width:fit-content;max-width:100%;padding:10px 34px 12px;text-align:center;color:#ecd08a;
   background:var(--grainw),linear-gradient(#2c1a0e,#1c1009);border:4px solid #120a05;outline:1px solid var(--gold);outline-offset:-9px;
@@ -89,7 +89,8 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
 .sel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:var(--ink2);min-height:36px}
 .sel button{font-size:12.5px;min-height:32px;padding:4px 10px}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:640px){.cols{grid-template-columns:1fr;gap:0}.plaque h1{font-size:26px}.eave{margin:0 -7px -2px}}
+@media (max-width:980px){.eave{margin:0 -7px -2px}}
+@media (max-width:640px){.cols{grid-template-columns:1fr;gap:0}.plaque h1{font-size:26px}}
 .gather{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px}
 .gather button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;font-size:13px}
 .gather button.need{border-color:var(--red);box-shadow:0 2px 0 var(--red),inset 0 0 0 1px var(--red)}
@@ -134,6 +135,31 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
 .tbtn{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:20px}
 .tbtn .primary{font-size:21px;padding:12px 40px}
 @media (max-width:640px){.title .plaque h1{font-size:32px}.title .plaque{padding:12px 24px 14px}}
+.site{display:grid;grid-template-columns:minmax(0,1fr) 304px;gap:20px;align-items:start}
+.view{min-width:0;padding:0 12px}
+.recipe{margin-top:22px}
+.recipe ol{list-style:none;margin:0;padding:0}
+.recipe li{display:grid;grid-template-columns:22px 1fr auto;gap:3px 8px;align-items:center;padding:6px 5px;border-bottom:1px dashed var(--line);font-size:13.5px}
+.recipe li>b{font-family:var(--brush);font-weight:400;width:22px;height:22px;display:grid;place-items:center;background:var(--hanji2);border:1px solid var(--line);font-size:12px}
+.recipe li.done{color:var(--ink2)}
+.recipe li.done>b{background:var(--jade);color:#fff;border-color:var(--jade)}
+.recipe li.cur{background:#f8e3d6;box-shadow:inset 3px 0 0 var(--red)}
+.recipe li.cur>b{background:var(--red);color:#fff;border-color:var(--red)}
+.recipe .need{grid-column:2/4;display:flex;gap:4px 9px;flex-wrap:wrap;font-size:12.5px;font-variant-numeric:tabular-nums}
+.recipe .need span{display:inline-flex;align-items:center;gap:3px}
+.recipe .need span.lack{color:var(--red);font-weight:700}
+.recipe .need i{font-style:normal;width:17px;height:17px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font:11px var(--brush)}
+.recipe em{font-style:normal;font-size:12px;color:var(--jade)}
+.recipe .sum{margin-top:10px;font-size:13px;color:var(--ink2)}
+.recipe .sum .need{margin-top:4px;color:var(--ink)}
+.crew{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin-top:10px;padding:7px 12px;background:var(--hanji3);border:1.5px solid var(--wood3);font-size:13px;box-shadow:0 2px 0 rgba(90,54,32,.25)}
+.crew>b{font-family:var(--brush);font-weight:400;font-size:16px;color:var(--wood)}
+.crew span{display:inline-flex;align-items:center;gap:5px}
+.crew img{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid var(--wood)}
+.crew span.zero{opacity:.38}
+.crew strong{font-size:15px}
+@media (max-width:980px){.site{grid-template-columns:1fr;gap:0}.recipe{margin-top:16px}.recipe ol{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.view{padding:0}}
+@media (max-width:560px){.recipe ol{grid-template-columns:1fr}}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -158,12 +184,14 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
   <div class="res" id="res"></div>
   <nav class="nav" id="nav" aria-label="마을"></nav>
 
-  <div class="eave"></div>
-  <div class="stagebox">
-    <canvas id="cv" width="800" height="450" aria-label="한옥 현장"></canvas>
-    <button class="primary drop" id="drop">내려놓기 (Space)</button>
-  </div>
-
+  <div class="site">
+    <div class="view">
+      <div class="eave"></div>
+      <div class="stagebox">
+        <canvas id="cv" width="800" height="450" aria-label="한옥 현장"></canvas>
+        <button class="primary drop" id="drop">내려놓기 (Space)</button>
+      </div>
+      <div class="crew" id="crew" aria-label="일꾼 현황"></div>
   <section class="card" id="designCard">
     <h2>새 집 설계<span>원하는 대로 골라 보세요</span></h2>
     <label class="opt"><span>당호</span><input id="dName" maxlength="8" placeholder="예: 연경당" autocomplete="off"></label>
@@ -193,6 +221,9 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
     <div class="sel" id="sel"></div>
     <div class="cat" id="cat"></div>
   </section>
+    </div>
+    <aside class="card recipe" id="side"></aside>
+  </div>
 
   <div class="cols">
     <section class="card">
@@ -229,6 +260,7 @@ const RES = {
   hanji:{n:'한지',h:'紙',job:'지장',rate:.6,base:40,img:1},
 };
 const RK = Object.keys(RES);
+const imgSrc = n => 'img/'+n+'.jpg';
 const STAGES = [
   {n:'터 닦기',p:'달구',cost:{clay:20,stone:10},land:330,sz:[46,30],col:'#8d8a82',
    fact:'집터를 단단히 다지는 일. 여럿이 줄을 잡고 달굿돌을 들었다 놓으며 지경소리를 불렀습니다.'},
@@ -729,6 +761,53 @@ function drawItems(h,v,t){
     if(i===sel){ c.strokeStyle='#b5422c'; c.lineWidth=1.2/v.z; c.setLineDash([4/v.z,3/v.z]); c.strokeRect(it.x-def.w*s/2-2,y-def.h*s-2,def.w*s+4,def.h*s+4); c.setLineDash([]); }
   }
 }
+// 사람 한 명. p = {x,y,dir,ph,k,carry,work,idle}
+function person(p,t){
+  const s=(.95+(p.y-350)/150)*1.45, mv=!p.work&&!p.idle, sw=mv?Math.sin(t*8+p.ph):0, bob=mv?Math.abs(Math.cos(t*8+p.ph))*1.3:0;
+  c.save(); c.translate(p.x,p.y); c.scale(s*p.dir,s);
+  O('rgba(30,20,10,.22)',0,0,7,2);
+  L('#e3dac4',2.8,[-1,-11,-1-sw*4.5,0]); L('#d2c8ae',2.8,[1,-11,1+sw*4.5,0]);
+  c.translate(0,-bob);
+  if(p.carry && p.k==='clay'){ P('#8a5a33',[-10,-27,-4,-27,-5,-17,-9,-17]); O('#b07a3c',-7,-27.5,3.6,2.2); }
+  c.fillStyle=p.k==='master'?'#51708a':'#f1ead8'; rr(-4.5,-24,9,14,3); c.fill();
+  if(p.k==='master') F('#f1ead8',-4.5,-14,9,4); L(p.k==='master'?'#2f4f6b':'#b9ad90',.8,[-1.5,-24,2,-17]);
+  if(p.work){ const a=Math.sin(t*10+p.ph); L('#f1ead8',2.4,[2,-21,8,-19-a*5]); L('#5a3418',1.3,[8,-19-a*5,11,-25-a*7]); F('#77736a',9,-28-a*7,4.4,3); }
+  else if(p.idle){ const a=Math.sin(t*1.6)*1.5; L(p.k==='master'?'#51708a':'#f1ead8',2.4,[2,-21,9,-24+a]); L('#3d2413',1.2,[9,-24+a,15,-27+a]); }
+  else if(p.carry){
+    L('#f1ead8',2.4,[2,-21,6,-25]);
+    if(p.k==='wood'){ c.fillStyle=shade(0,1,'#8a5a33','#8a5a33','#8a5a33'); F('#8a5a33',-11,-30,24,4.4); F('rgba(255,255,255,.18)',-11,-30,24,1.2); O('#d2a76c',13,-27.8,1.8,2.2); }
+    if(p.k==='stone'){ c.fillStyle='#aaa59a'; rr(3,-23,9,7,1.6); c.fill(); F('rgba(255,255,255,.3)',3.5,-23,8,1.4); }
+    if(p.k==='tile'){ for(let j=0;j<4;j++) F(j%2?'#4a4f58':'#2e3238',-5.5,-37-j*2,11,1.8); }
+    if(p.k==='hanji'){ F('#f6eeda',1,-23,12,4); c.strokeStyle='#b9ad90'; c.lineWidth=.6; c.strokeRect(1,-23,12,4); O('#f6eeda',13,-21,1.4,2); }
+  } else L('#f1ead8',2.4,[2,-21,3+sw*3,-13]);
+  O('#e0b48a',0,-28,4); O('#2b2622',-.3,-31,3.6,2.2); O('#2b2622',-.6,-33.8,1.6); F('#f6f2e6',-4,-30.2,8,1.5);
+  c.restore();
+}
+function pile(k,x,y){
+  const r=S.res[k], n=r<1?0:Math.min(4,1+Math.floor(Math.log10(r+1)));
+  if(!n) return; c.save(); c.translate(x,y); c.scale(1.35,1.35); c.translate(-x,-y); O('rgba(30,20,10,.2)',x,y+1,16,3);
+  for(let i=0;i<n;i++){
+    if(k==='wood'){ F(i%2?'#7a4a2b':'#8a5a33',x-13+i,y-4.4*(i+1),26-i*2,4.2); O('#d2a76c',x+13-i,y-4.4*(i+1)+2.1,1.9,2.1); }
+    if(k==='stone'){ c.fillStyle=i%2?'#9c978c':'#b5b0a4'; rr(x-12+i*2,y-6*(i+1),24-i*4,5.6,1.6); c.fill(); }
+    if(k==='clay'){ O(i%2?'#a56f34':'#b98244',x,y-2-i*2.6,13-i*2.4,4.2-i*.4); }
+    if(k==='tile'){ for(let j=0;j<3;j++) F(j%2?'#4a4f58':'#2e3238',x-12+j*8.4,y-3.4*(i+1),7.4,2.8); }
+    if(k==='hanji'){ F('#f6eeda',x-11,y-3.2*(i+1),22,2.8); c.strokeStyle='#b9ad90'; c.lineWidth=.5; c.strokeRect(x-11,y-3.2*(i+1),22,2.8); }
+  }
+  c.restore();
+}
+// 공사 중인 현장: 자재 더미와 오가는 일꾼들 (종류마다 여덟 명까지 그림)
+function drawCrew(t,v){
+  const g=v.g, left=v.ox+g.x0, list=[];
+  RK.forEach((k,j)=>{ const px=44+j*34, py=352+(j%2)*34;
+    pile(k,px,py);
+    const n=Math.min(S.workers[k],8);
+    for(let i=0;i<n;i++){ const h1=hash(j*17+i*5+1), h2=hash(j*31+i*7+2), ph=(t*(.045+.02*h1)+h2)%1, y=346+h2*52, tx=left+16+h1*(g.W-32), x0=px+16;
+      let u,dir,carry=false,work=false;
+      if(ph<.42){ u=ph/.42; dir=1; carry=true; } else if(ph<.5){ u=1; dir=1; work=true; } else if(ph<.92){ u=1-(ph-.5)/.42; dir=-1; } else { u=0; dir=-1; work=true; }
+      list.push({x:x0+(tx-x0)*u,y,dir,ph:h1*9,k,carry,work}); } });
+  list.push({x:Math.min(772,v.ox+g.x1+72),y:352,dir:-1,ph:0,k:'master',idle:true});
+  list.sort((a,b)=>a.y-b.y); for(const q of list) person(q,t);
+}
 function backdrop(t, others){
   se=Math.floor(S.play/75)%4;
   const sky=[['#cfe6ee','#f6ead9'],['#a9d6ee','#e9f3df'],['#e8d2ae','#f7e7cf'],['#c9d3dc','#eef1f2']][se];
@@ -770,6 +849,7 @@ function drawScene(t){
   if(h) drawItems(h,v,t);
   if(m==='design'){ c.font='11px sans-serif'; c.textAlign='center'; for(let i=0;i<v.g.n;i++){ const x=v.g.x0+i*v.g.kw+v.g.kw/2; c.fillStyle='rgba(43,38,34,.78)'; rr(x-17,6,34,17,8); c.fill(); c.fillStyle='#fff'; c.fillText(USE[v.d.uses[i]],x,18.5); } }
   c.restore();
+  if(m==='build') drawCrew(t,v);
   if(se!==1 && !v.inside){ c.fillStyle=['#f6c3d0','','#d9822b','#ffffff'][se];
     for(let i=0;i<28;i++){ const sp=30+hash(i)*30, x=(hash(i+50)*800+t*(se===3?8:22)+Math.sin(t+i)*14)%800, y=(hash(i+90)*450+t*sp)%450;
       ell(x,y,se===3?2.4:3.2,se===3?2.4:1.8); c.fill(); } }
@@ -797,7 +877,7 @@ function buildUI(){
   $('res').innerHTML = RK.map(k=>`<span class="chip"><i class="b-${k}">${RES[k].h}</i><span id="r-${k}">0</span><em id="rr-${k}"></em></span>`).join('')
     + `<span class="chip coin" id="coinChip"><i class="b-coin">錢</i><span><span id="r-coin">0</span>전</span><em id="rr-coin"></em></span>`;
   $('gather').innerHTML = RK.map(k=>`<button data-g="${k}"><b class="b-${k}">${RES[k].h}</b><span>${RES[k].n} <span id="g-${k}"></span></span></button>`).join('');
-  $('workers').innerHTML = RK.map(k=>`<div class="row"><span>${RES[k].img?`<img class="av" src="img/${k}.jpg" alt="${RES[k].job}" width="46" height="46">`:`<i class="av b-${k}">${RES[k].h}</i>`}<span>${RES[k].job} <b id="w-${k}">0</b>명<small>${RES[k].n} 초당 ${RES[k].rate}</small></span></span><button data-h="${k}" id="h-${k}"></button></div>`).join('')
+  $('workers').innerHTML = RK.map(k=>`<div class="row"><span>${RES[k].img?`<img class="av" src="${imgSrc(k)}" alt="${RES[k].job}" width="46" height="46">`:`<i class="av b-${k}">${RES[k].h}</i>`}<span>${RES[k].job} <b id="w-${k}">0</b>명<small>${RES[k].n} 초당 ${RES[k].rate}</small></span></span><button data-h="${k}" id="h-${k}"></button></div>`).join('')
     + `<div class="row"><span><i class="av b-coin">鐵</i><span>연장 벼리기 <b id="w-tool">1</b>단<small>손으로 모으는 양 +1</small></span></span><button id="h-tool"></button></div>`;
   $('dots').innerHTML = STAGES.map(()=>'<span></span>').join('');
   // 가구 목록 (작은 그림 포함)
@@ -847,7 +927,23 @@ function renderDesign(){
   if(document.activeElement!==$('dName')) $('dName').value=d.name||'';
   $('dSum').textContent = `공사 규모 ×${mult(d)} — 클수록 자재가 많이 들고 품삯과 숙박 수입도 커집니다.`;
 }
-let navSig='';
+let navSig='', sideSig='', crewSig='';
+const needHTML = (cost,check) => Object.keys(cost).map(k=>`<span class="${check&&S.res[k]<cost[k]?'lack':''}"><i class="b-${k}">${RES[k].h}</i>${RES[k].n} ${fmt(cost[k])}</span>`).join('');
+function sideHTML(m){
+  if(m==='deco'){ const h=curHouse(), cnt={}; h.items.forEach(it=>{ if(IT[it.id]) cnt[it.id]=(cnt[it.id]||0)+1; });
+    const rows=Object.keys(cnt).map(id=>`<li><b>${cnt[id]}</b><span>${IT[id].n}</span><em>품격 +${IT[id].pt*cnt[id]}</em></li>`).join('');
+    return `<h2>살림 장부<span>${houseName(h.d)}</span></h2><ol>${rows||'<li><b>·</b><span>아직 들인 살림이 없습니다</span></li>'}</ol>
+      <div class="sum">품격 ${grace(h)} · 손님이 초당 ${houseRate(h).toFixed(1)}전을 냅니다. 가구를 들일수록 수입이 늘어납니다.</div>`; }
+  const cu=S.cur, d=cu.d, mlt=mult(d), from=m==='build'?cu.stage:0, tot={};
+  const rows=STAGES.map((_,i)=>{ const st=stageInfo(i,d), cost={}; for(const k in st.cost) cost[k]=Math.round(st.cost[k]*mlt);
+    const done=m==='build'&&i<cu.stage, cur=m==='build'&&i===cu.stage;
+    if(i>=from) for(const k in cost) tot[k]=(tot[k]||0)+cost[k];
+    return `<li class="${done?'done':cur?'cur':''}"><b>${done?'✓':i+1}</b><span>${st.n}</span><em>${done?'솜씨 '+Math.round(cu.quals[i]*100):''}</em><div class="need">${needHTML(cost,cur)}</div></li>`; }).join('');
+  return `<h2>공정표<span>${m==='build'?houseName(d):'이 설계대로 지으면'}</span></h2><ol>${rows}</ol>
+    <div class="sum">${m==='build'?'남은 공정에 드는 자재':'집 한 채에 드는 자재'}<div class="need">${needHTML(tot,true)}</div></div>`;
+}
+function crewHTML(){ const n=RK.reduce((a,k)=>a+S.workers[k],0);
+  return `<b>일꾼 ${n}명</b>`+RK.map(k=>`<span class="${S.workers[k]?'':'zero'}"><img src="${imgSrc(k)}" alt="" width="28" height="28">${RES[k].job} <strong>${S.workers[k]}</strong></span>`).join(''); }
 function refresh(){
   const m=mode();
   for(const k of RK){
@@ -866,6 +962,8 @@ function refresh(){
   if(sig!==navSig){ navSig=sig;
     $('nav').innerHTML = S.houses.map((h,i)=>`<button data-at="${i}" class="${S.at===i?'on':''}">${houseName(h.d)}</button>`).join('')
       + `<button data-at="-1" class="${S.at<0?'on':''}">${S.cur.locked?`공사 중 ${S.cur.stage}/10`:'＋ 새 집 설계'}</button>`; }
+  const sh=sideHTML(m); if(sh!==sideSig){ sideSig=sh; $('side').innerHTML=sh; }
+  const ch=crewHTML(); if(ch!==crewSig){ crewSig=ch; $('crew').innerHTML=ch; }
   $('designCard').hidden = m!=='design'; $('buildCard').hidden = m!=='build'; $('decoCard').hidden = m!=='deco';
   cv.style.touchAction = m==='deco' ? 'none' : 'manipulation';
   if(m==='design' && !$('dOpts').children.length) renderDesign();
@@ -873,7 +971,7 @@ function refresh(){
     const st=stageInfo(S.cur.stage,S.cur.d), cost=stageCost();
     $('stName').innerHTML = `${S.cur.stage+1}. ${st.n}<span>${houseName(S.cur.d)} · ${S.cur.stage+1}/10 공정</span>`;
     $('stFact').textContent = st.fact;
-    const ph='img/'+(st===THATCH?'s7t':'s'+(S.cur.stage+1))+'.jpg', im=$('stImg'); if(im.getAttribute('src')!==ph){ im.src=ph; im.alt=st.n+' 장면'; }
+    const ph=imgSrc(st===THATCH?'s7t':'s'+(S.cur.stage+1)), im=$('stImg'); if(im.getAttribute('src')!==ph){ im.src=ph; im.alt=st.n+' 장면'; }
     $('stCost').innerHTML = Object.keys(cost).map(k=>`<span class="chip${S.res[k]<cost[k]?' lack':''}"><i class="b-${k}">${RES[k].h}</i>${RES[k].n} ${fmt(Math.min(S.res[k],cost[k]))}/${fmt(cost[k])}</span>`).join('');
     const bb=$('build'); bb.disabled = !!mg || !canBuild(); bb.textContent = mg ? '공사 중…' : '착공';
     document.querySelectorAll('#gather button').forEach(b=>b.classList.toggle('need', cost[b.dataset.g]!==undefined && S.res[b.dataset.g]<cost[b.dataset.g]));
