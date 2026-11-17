@@ -160,6 +160,35 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
 .crew strong{font-size:15px}
 @media (max-width:980px){.site{grid-template-columns:1fr;gap:0}.recipe{margin-top:16px}.recipe ol{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.view{padding:0}}
 @media (max-width:560px){.recipe ol{grid-template-columns:1fr}}
+/* --- 차분한 전통 느낌으로 다듬기 --- */
+:root{--dancheong:linear-gradient(#2c1a0e,#3d2413)}
+body::before,.title::before{height:7px;border-bottom:1px solid var(--gold)}
+.card{border:1.5px solid var(--wood);border-image:none;outline:1px solid var(--line);outline-offset:-7px;padding:18px 20px;box-shadow:0 1px 0 #fffdf6 inset,0 6px 16px rgba(60,40,20,.10)}
+.card::before,.card::after{display:none}
+.primary{background:var(--red);box-shadow:0 3px 0 #6e2418}
+.chip{box-shadow:none}
+.plaque{box-shadow:0 2px 0 #0a0503,0 8px 16px rgba(50,30,10,.2)}
+.stagebox{border-width:7px;box-shadow:inset 0 0 0 1.5px #1c1009,0 0 0 1.5px #1c1009,0 8px 16px rgba(50,30,10,.2)}
+.toast{bottom:auto;top:16px}
+/* 사진을 그림과 같은 바랜 색으로 */
+.photo,.crew img,.master img{filter:sepia(.3) saturate(.8) contrast(.96) brightness(1.03)}
+/* 일꾼 고용 띠 · 손으로 모으기 띠 */
+.crew{gap:6px 8px;padding:8px 10px;box-shadow:none}
+.crew>b{margin-right:4px}
+.job{display:inline-flex;align-items:center;gap:7px;padding:4px 10px 4px 5px;min-height:44px;text-align:left;background:#fffdf5}
+.job img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1.5px solid var(--wood)}
+.job span{display:block;font-size:13px;line-height:1.25}
+.job strong{font-size:16px}
+.job small{display:block;font-size:11.5px;color:var(--red)}
+.job.zero img{opacity:.55}
+.job:disabled{opacity:1}
+.job:disabled small{color:var(--ink2);opacity:.6}
+.gbar{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;margin-top:8px;padding:8px 10px;background:var(--hanji3);border:1.5px solid var(--wood3)}
+.gbar>b{font-family:var(--brush);font-weight:400;font-size:16px;color:var(--wood);margin-right:4px}
+.gbar button{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;min-height:44px;padding:5px 9px 5px 6px;background:#fffdf5}
+.gbar button i{font-style:normal;width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font:17px var(--brush);box-shadow:inset 0 0 0 2px rgba(255,255,255,.28)}
+.gbar button.need{border-color:var(--red);box-shadow:0 2px 0 var(--red),inset 0 0 0 1px var(--red)}
+.gbar .tool{padding:5px 10px;font-size:12.5px}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -189,9 +218,10 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
       <div class="eave"></div>
       <div class="stagebox">
         <canvas id="cv" width="800" height="450" aria-label="한옥 현장"></canvas>
-        <button class="primary drop" id="drop">내려놓기 (Space)</button>
+        <button class="primary drop" id="drop">지금! (Space)</button>
       </div>
-      <div class="crew" id="crew" aria-label="일꾼 현황"></div>
+      <div class="crew" id="crew" aria-label="일꾼 고용과 현황"></div>
+      <div class="gbar" id="gather" aria-label="손으로 자재 모으기"></div>
   <section class="card" id="designCard">
     <h2>새 집 설계<span>원하는 대로 골라 보세요</span></h2>
     <label class="opt"><span>당호</span><input id="dName" maxlength="8" placeholder="예: 연경당" autocomplete="off"></label>
@@ -225,20 +255,9 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
     <aside class="card recipe" id="side"></aside>
   </div>
 
-  <div class="cols">
-    <section class="card">
-      <h2>자재 모으기</h2>
-      <div class="gather" id="gather"></div>
-    </section>
-    <section class="card">
-      <h2>일꾼</h2>
-      <div id="workers"></div>
-    </section>
-  </div>
-
   <div class="foot">
     <span>진행 상황은 이 브라우저에 자동 저장됩니다.</span>
-    <span><button id="toTitle">첫 화면</button> <button id="reset">처음부터 다시</button></span>
+    <span><button id="mute"></button> <button id="toTitle">첫 화면</button> <button id="reset">처음부터 다시</button></span>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -253,11 +272,11 @@ button:not(:disabled):active{transform:translateY(2px);box-shadow:none}
 'use strict';
 /* ---------- 데이터 ---------- */
 const RES = {
-  wood:{n:'목재',h:'木',job:'벌목꾼',rate:1,base:15,img:1},
-  stone:{n:'석재',h:'石',job:'석수',rate:1,base:15,img:1},
-  clay:{n:'황토',h:'土',job:'토수',rate:1,base:15,img:1},
-  tile:{n:'기와',h:'瓦',job:'와공',rate:.6,base:40,img:1},
-  hanji:{n:'한지',h:'紙',job:'지장',rate:.6,base:40,img:1},
+  wood:{n:'목재',h:'木',job:'벌목꾼',rate:.5,base:15,img:1},
+  stone:{n:'석재',h:'石',job:'석수',rate:.5,base:15,img:1},
+  clay:{n:'황토',h:'土',job:'토수',rate:.5,base:15,img:1},
+  tile:{n:'기와',h:'瓦',job:'와공',rate:.4,base:40,img:1},
+  hanji:{n:'한지',h:'紙',job:'지장',rate:.4,base:40,img:1},
 };
 const RK = Object.keys(RES);
 const imgSrc = n => 'img/'+n+'.jpg';
@@ -274,7 +293,7 @@ const STAGES = [
    fact:'못 없이 짜 맞추는 결구. 가장 높은 마룻도리를 올리는 날 상량식을 치르고 상량문을 적어 넣습니다.'},
   {n:'서까래 걸기',p:'서까래',cost:{wood:120},land:185,sz:[110,10],col:'#8a5a36',
    fact:'깊은 처마는 높은 여름 해는 가리고 낮은 겨울 해는 방 안 깊숙이 들입니다.'},
-  {n:'기와 잇기',p:'기와',cost:{tile:150,clay:40},land:165,sz:[70,18],col:'#3b4048',
+  {n:'기와 잇기',p:'기와',cost:{tile:120,clay:40},land:165,sz:[70,18],col:'#3b4048',
    fact:'넓적한 암키와를 깔고 그 사이를 둥근 수키와로 덮습니다. 처마 끝은 막새로 마감합니다.'},
   {n:'벽체·창호 달기',p:'문짝',cost:{clay:80,hanji:60},land:265,sz:[40,70],col:'#f1e8d0',
    fact:'대나무·싸리로 외를 엮고 흙을 발라 벽을 치고, 문살에는 한지를 발라 빛과 바람이 은은히 드나듭니다.'},
@@ -304,7 +323,7 @@ const stageInfo = (i,d) => i===6 && d.roof===0 ? THATCH : STAGES[i];
 
 /* ---------- 상태 ---------- */
 const KEY='hanok-save-v2';
-const fresh = () => ({res:{wood:0,stone:0,clay:0,tile:0,hanji:0},coin:30,
+const fresh = () => ({res:{wood:0,stone:0,clay:0,tile:0,hanji:0},coin:45,
   workers:{wood:0,stone:0,clay:0,tile:0,hanji:0},tool:1,houses:[],
   cur:{d:defDesign(),locked:false,stage:0,quals:[]},at:-1,inside:false,play:0,last:Date.now()});
 let S = fresh();
@@ -330,16 +349,43 @@ const $ = id => document.getElementById(id);
 const fmt = v => v>=1e6 ? (v/1e6).toFixed(1)+'M' : v>=1e4 ? (v/1e3).toFixed(1)+'k' : String(Math.floor(v));
 const mode = () => S.at>=0 ? 'deco' : S.cur.locked ? 'build' : 'design';
 const clickGain = () => 1 + S.tool;
-const hireCost = k => Math.round(RES[k].base*Math.pow(1.18,S.workers[k]));
+// 균형 수치: 자재 배수, 품삯 기준·규모 지수, 고용가 배수·증가율
+const BAL = {cost:3.2, pay:15, payExp:.65, hire:1.4, grow:1.26};   // 자동 플레이 측정으로 맞춘 값
+const hireCost = k => Math.round(RES[k].base*BAL.hire*Math.pow(BAL.grow,S.workers[k]));
 const toolCost = () => Math.round(50*Math.pow(2,S.tool-1));
 const grace = h => h.items.reduce((a,it)=>a+(IT[it.id]?IT[it.id].pt:0),0);
 const houseRate = h => (0.3+h.q)*mult(h.d) + 0.04*grace(h);
 const coinRate = () => S.houses.reduce((a,h)=>a+houseRate(h),0);
-const stageCost = () => { const o={}, c=stageInfo(S.cur.stage,S.cur.d).cost, m=mult(S.cur.d); for(const k in c) o[k]=Math.round(c[k]*m); return o; };
+const costOf = (i,d) => { const o={}, c=stageInfo(i,d).cost, m=mult(d)*BAL.cost; for(const k in c) o[k]=Math.round(c[k]*m); return o; };
+const stageCost = () => costOf(S.cur.stage,S.cur.d);
+const stagePay = (i,d,q) => Math.round(BAL.pay*(i+1)*Math.pow(mult(d),BAL.payExp)*(0.5+q));
 const canBuild = () => { const c=stageCost(); return Object.keys(c).every(k=>S.res[k]>=c[k]); };
 function produce(dt){
   for(const k of RK) S.res[k] += S.workers[k]*RES[k].rate*dt;
   S.coin += coinRate()*dt;
+}
+let AC=null;
+function sfx(n){
+  if(S.mute) return;
+  try{
+    if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
+    const t=AC.currentTime, P5=[293.7,349.2,392,440,523.3,587.3];
+    const tone=(f,d,v,type='sine',at=0,slide=0)=>{ const o=AC.createOscillator(), g=AC.createGain(); o.type=type; o.frequency.setValueAtTime(f,t+at);
+      if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+at+d);
+      g.gain.setValueAtTime(.0001,t+at); g.gain.linearRampToValueAtTime(v,t+at+.008); g.gain.exponentialRampToValueAtTime(.0001,t+at+d);
+      o.connect(g); g.connect(AC.destination); o.start(t+at); o.stop(t+at+d+.03); };
+    if(n==='tick') tone(900,.05,.05,'triangle');
+    else if(n==='gather') tone(520,.06,.05,'triangle',0,380);
+    else if(n==='drop') tone(190,.12,.1,'sine',0,95);
+    else if(n==='thud'){ tone(140,.22,.22,'sine',0,60); tone(820,.04,.03,'square'); }
+    else if(n==='good'){ tone(140,.22,.2,'sine',0,60); tone(P5[4],.38,.1,'triangle',.03); tone(P5[5]*1.5,.42,.05,'sine',.07); }
+    else if(n==='coin'){ tone(1568,.09,.06,'triangle'); tone(2093,.17,.06,'triangle',.07); }
+    else if(n==='hire'){ tone(P5[1],.12,.08,'triangle'); tone(P5[3],.2,.08,'triangle',.1); }
+    else if(n==='stage'){ [0,2,4].forEach((i,j)=>tone(P5[i],.32,.09,'triangle',j*.13)); tone(1568,.09,.05,'triangle',.5); tone(2093,.17,.05,'triangle',.57); }
+    else if(n==='house'){ tone(98,2.4,.28,'sine'); tone(196.5,1.9,.1,'sine'); [0,1,3,4,5].forEach((i,j)=>tone(P5[i],.5,.09,'triangle',.3+j*.17)); }
+    else if(n==='place') tone(240,.1,.1,'sine',0,150);
+  }catch(e){}
 }
 function bump(){ const e=$('coinChip'); if(!e) return; e.classList.remove('bump'); void e.offsetWidth; e.classList.add('bump'); }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),2600); }
@@ -769,7 +815,8 @@ function person(p,t){
   L('#e3dac4',2.8,[-1,-11,-1-sw*4.5,0]); L('#d2c8ae',2.8,[1,-11,1+sw*4.5,0]);
   c.translate(0,-bob);
   if(p.carry && p.k==='clay'){ P('#8a5a33',[-10,-27,-4,-27,-5,-17,-9,-17]); O('#b07a3c',-7,-27.5,3.6,2.2); }
-  c.fillStyle=p.k==='master'?'#51708a':'#f1ead8'; rr(-4.5,-24,9,14,3); c.fill();
+  c.fillStyle=p.col||(p.k==='master'?'#51708a':'#f1ead8'); rr(-4.5,-24,9,14,3); c.fill();
+  if(p.col){ P(p.col,[-4.5,-13,4.5,-13,7,-1.5,-7,-1.5]); P('rgba(0,0,0,.12)',[0,-13,4.5,-13,7,-1.5,1,-1.5]); L('#f6f2e6',1,[-1.5,-24,2,-17]); }
   if(p.k==='master') F('#f1ead8',-4.5,-14,9,4); L(p.k==='master'?'#2f4f6b':'#b9ad90',.8,[-1.5,-24,2,-17]);
   if(p.work){ const a=Math.sin(t*10+p.ph); L('#f1ead8',2.4,[2,-21,8,-19-a*5]); L('#5a3418',1.3,[8,-19-a*5,11,-25-a*7]); F('#77736a',9,-28-a*7,4.4,3); }
   else if(p.idle){ const a=Math.sin(t*1.6)*1.5; L(p.k==='master'?'#51708a':'#f1ead8',2.4,[2,-21,9,-24+a]); L('#3d2413',1.2,[9,-24+a,15,-27+a]); }
@@ -796,16 +843,32 @@ function pile(k,x,y){
   c.restore();
 }
 // 공사 중인 현장: 자재 더미와 오가는 일꾼들 (종류마다 여덟 명까지 그림)
+const popAcc={wood:0,stone:0,clay:0,tile:0,hanji:0}, lastPh={};
 function drawCrew(t,v){
   const g=v.g, left=v.ox+g.x0, list=[];
-  RK.forEach((k,j)=>{ const px=44+j*34, py=352+(j%2)*34;
+  RK.forEach((k,j)=>{ const px=62+j*36, py=354+(j%2)*36;
     pile(k,px,py);
     const n=Math.min(S.workers[k],8);
-    for(let i=0;i<n;i++){ const h1=hash(j*17+i*5+1), h2=hash(j*31+i*7+2), ph=(t*(.045+.02*h1)+h2)%1, y=346+h2*52, tx=left+16+h1*(g.W-32), x0=px+16;
-      let u,dir,carry=false,work=false;
-      if(ph<.42){ u=ph/.42; dir=1; carry=true; } else if(ph<.5){ u=1; dir=1; work=true; } else if(ph<.92){ u=1-(ph-.5)/.42; dir=-1; } else { u=0; dir=-1; work=true; }
-      list.push({x:x0+(tx-x0)*u,y,dir,ph:h1*9,k,carry,work}); } });
+    for(let i=0;i<n;i++){ const h1=hash(j*17+i*5+1), h2=hash(j*31+i*7+2), ph=(t*(.05+.02*h1)+h2)%1, id=k+i, was=lastPh[id]; lastPh[id]=ph;
+      let x,y,dir,carry=false,work=false;
+      if(i%2===0){ // 자재를 구해 와 더미에 부리는 일꾼: 도착하면 그동안 모인 양이 더미 위에 뜬다
+        const ex=-20, tx=px-14; y=py+2+h2*12;
+        if(ph<.46){ x=ex+(tx-ex)*(ph/.46); dir=1; carry=true; } else if(ph<.54){ x=tx; dir=1; work=true; } else { x=tx+(ex-tx)*((ph-.54)/.46); dir=-1; }
+        if(was!==undefined && was<.46 && ph>=.46){ const amt=Math.floor(popAcc[k]); if(amt>=1){ popAcc[k]-=amt; floats.push({x:px,y:py-30,t:0,txt:'+'+fmt(amt),col:'#3d2413',small:1}); } }
+      } else {     // 더미에서 집터로 나르며 짓는 일꾼
+        const x0=px+18, tx=left+16+h1*(g.W-32); y=346+h2*52;
+        if(ph<.42){ x=x0+(tx-x0)*(ph/.42); dir=1; carry=true; } else if(ph<.5){ x=tx; dir=1; work=true; } else if(ph<.92){ x=tx+(x0-tx)*((ph-.5)/.42); dir=-1; } else { x=x0; dir=-1; work=true; }
+      }
+      list.push({x,y,dir,ph:h1*9,k,carry,work}); } });
   list.push({x:Math.min(772,v.ox+g.x1+72),y:352,dir:-1,ph:0,k:'master',idle:true});
+  list.sort((a,b)=>a.y-b.y); for(const q of list) person(q,t);
+}
+// 완공한 집 마당을 거니는 손님들 (품격이 오를수록 늘어난다)
+const GCOL=['#7b2f3a','#2f4f6b','#3f7a5a','#8a6212','#6a5a8a'];
+const guestCount = h => Math.min(5,1+Math.floor(grace(h)/50));
+function drawGuests(t,h){
+  const list=[]; for(let i=0;i<guestCount(h);i++){ const ph=(t*(.03+hash(i+40)*.02)+hash(i+60))%1, u=ph<.5?ph*2:2-ph*2;
+    list.push({x:110+u*580,y:404+hash(i+80)*28,dir:ph<.5?1:-1,ph:i*2.3,k:'guest',col:GCOL[i]}); }
   list.sort((a,b)=>a.y-b.y); for(const q of list) person(q,t);
 }
 function backdrop(t, others){
@@ -850,19 +913,39 @@ function drawScene(t){
   if(m==='design'){ c.font='11px sans-serif'; c.textAlign='center'; for(let i=0;i<v.g.n;i++){ const x=v.g.x0+i*v.g.kw+v.g.kw/2; c.fillStyle='rgba(43,38,34,.78)'; rr(x-17,6,34,17,8); c.fill(); c.fillStyle='#fff'; c.fillText(USE[v.d.uses[i]],x,18.5); } }
   c.restore();
   if(m==='build') drawCrew(t,v);
+  if(m==='deco' && !v.inside) drawGuests(t,h);
   if(se!==1 && !v.inside){ c.fillStyle=['#f6c3d0','','#d9822b','#ffffff'][se];
     for(let i=0;i<28;i++){ const sp=30+hash(i)*30, x=(hash(i+50)*800+t*(se===3?8:22)+Math.sin(t+i)*14)%800, y=(hash(i+90)*450+t*sp)%450;
       ell(x,y,se===3?2.4:3.2,se===3?2.4:1.8); c.fill(); } }
   if(mg){
-    const st=stageInfo(S.cur.stage,S.cur.d), [w,hh]=st.sz;
-    c.strokeStyle='rgba(181,66,44,.85)'; c.lineWidth=2; c.setLineDash([7,6]); c.beginPath(); c.moveTo(400,58); c.lineTo(400,340); c.stroke(); c.setLineDash([]);
-    F('rgba(181,66,44,.12)',392,58,16,282);
-    const x=400+mg.x, y=mg.fall?mg.fall.y:78;
-    if(!mg.fall && mg.wait<=0) L('#5b544c',1.5,[x,0,x,y-hh/2]);
-    c.fillStyle=st.col; rr(x-w/2,y-hh/2,w,hh,4); c.fill(); c.strokeStyle='#2b2622'; c.lineWidth=1.5; c.stroke();
-    c.fillStyle='#2b2622'; c.font='bold 15px sans-serif'; c.textAlign='center'; c.fillText(`${st.p} ${Math.min(mg.round+1,3)}/3`,400,34);
+    const st=stageInfo(S.cur.stage,S.cur.d), [w,hh]=st.sz; c.textAlign='center';
+    if(mg.type===0){
+      c.strokeStyle='rgba(181,66,44,.85)'; c.lineWidth=2; c.setLineDash([7,6]); c.beginPath(); c.moveTo(400,58); c.lineTo(400,340); c.stroke(); c.setLineDash([]);
+      F('rgba(181,66,44,.12)',390,58,20,282);
+      const x=400+mg.x, y=mg.fall?mg.fall.y:78;
+      if(!mg.fall && mg.wait<=0) L('#5b544c',1.5,[x,0,x,y-hh/2]);
+      c.fillStyle=st.col; rr(x-w/2,y-hh/2,w,hh,4); c.fill(); c.strokeStyle='#2b2622'; c.lineWidth=1.5; c.stroke();
+    } else if(mg.type===1){
+      const cx=400, cy=214, R=28+mg.v*100, T=28+.28*100, hit=mg.fall||mg.wait>0;
+      O('rgba(244,236,216,.55)',cx,cy,T+16); O('rgba(181,66,44,.16)',cx,cy,T+6);
+      c.strokeStyle='rgba(166,58,40,.95)'; c.lineWidth=5; ell(cx,cy,T,T); c.stroke();
+      c.strokeStyle=hit?'#b5422c':'#2a2420'; c.lineWidth=hit?8:6; ell(cx,cy,R,R); c.stroke();
+      const lift=hit?0:Math.max(0,(mg.v-.28))*26; L('#8a6a3c',1.4,[cx-14,cy-12-lift,cx-30,cy-52-lift]); L('#8a6a3c',1.4,[cx+14,cy-12-lift,cx+30,cy-52-lift]);
+      c.fillStyle=st.col; rr(cx-20,cy-14-lift,40,26,7); c.fill(); c.strokeStyle='#2b2622'; c.lineWidth=1.5; c.stroke();
+    } else {
+      const x0=190, W0=420, y0=84, mx=x0+W0*mg.v, bx=x0+W0*mg.band;
+      c.fillStyle='rgba(244,236,216,.92)'; rr(x0-10,y0-10,W0+20,42,6); c.fill(); c.strokeStyle='#5a3620'; c.lineWidth=2; c.stroke();
+      F('#e3d6b8',x0,y0,W0,22); F('rgba(166,58,40,.28)',bx-W0*.15,y0,W0*.3,22); F('#a63a28',bx-W0*.045,y0,W0*.09,22);
+      c.strokeStyle='rgba(42,36,32,.35)'; c.lineWidth=1; c.beginPath(); for(let k=0;k<=20;k++){ c.moveTo(x0+W0*k/20,y0+(k%5?15:9)); c.lineTo(x0+W0*k/20,y0+22); } c.stroke();
+      P('#2a2420',[mx-8,y0-12,mx+8,y0-12,mx,y0+2]); F('#2a2420',mx-1.5,y0,3,22);
+      c.fillStyle=st.col; rr(mx-w*.3,y0+34,w*.6,Math.min(hh,18),3); c.fill(); c.strokeStyle='#2b2622'; c.lineWidth=1.2; c.stroke();
+    }
+    c.fillStyle='#2b2622'; c.font='bold 16px serif'; c.strokeStyle='rgba(255,250,235,.9)'; c.lineWidth=4; c.lineJoin='round';
+    const lab=`${st.p} ${Math.min(mg.round+1,3)}/3`; c.strokeText(lab,400,34); c.fillText(lab,400,34);
+    c.font='14px serif'; c.strokeText(MGHINT[mg.type],400,56); c.fillText(MGHINT[mg.type],400,56);
   }
-  for(const f of floats){ const y=f.y-f.t*(f.coin?22:34); c.globalAlpha=Math.max(0,Math.min(1,(f.coin?1.8:1.1)-f.t)*1.6); c.font='bold 20px serif'; c.textAlign='center';
+  for(const f of floats){ const y=f.y-f.t*(f.coin?22:34); c.globalAlpha=Math.max(0,Math.min(1,(f.coin?1.8:1.1)-f.t)*1.6); c.font=(f.small?'bold 15px':'bold 20px')+' serif'; c.textAlign='center';
+    if(f.small){ c.strokeStyle='rgba(255,250,235,.95)'; c.lineWidth=3; c.lineJoin='round'; c.strokeText(f.txt,f.x,y); }
     if(f.coin){ const w=c.measureText(f.txt).width, cx=f.x-w/2-14; O('#6a4a08',cx,y-6,10); O('#e8c15a',cx,y-7,9); O('#f6e3a0',cx-2,y-9,4,3); F('#6a4a08',cx-3,y-10,6,6);
       c.strokeStyle='rgba(255,250,235,.95)'; c.lineWidth=4; c.lineJoin='round'; c.strokeText(f.txt,f.x,y); }
     c.fillStyle=f.col; c.fillText(f.txt,f.x,y); }
@@ -876,21 +959,18 @@ function drawScene(t){
 function buildUI(){
   $('res').innerHTML = RK.map(k=>`<span class="chip"><i class="b-${k}">${RES[k].h}</i><span id="r-${k}">0</span><em id="rr-${k}"></em></span>`).join('')
     + `<span class="chip coin" id="coinChip"><i class="b-coin">錢</i><span><span id="r-coin">0</span>전</span><em id="rr-coin"></em></span>`;
-  $('gather').innerHTML = RK.map(k=>`<button data-g="${k}"><b class="b-${k}">${RES[k].h}</b><span>${RES[k].n} <span id="g-${k}"></span></span></button>`).join('');
-  $('workers').innerHTML = RK.map(k=>`<div class="row"><span>${RES[k].img?`<img class="av" src="${imgSrc(k)}" alt="${RES[k].job}" width="46" height="46">`:`<i class="av b-${k}">${RES[k].h}</i>`}<span>${RES[k].job} <b id="w-${k}">0</b>명<small>${RES[k].n} 초당 ${RES[k].rate}</small></span></span><button data-h="${k}" id="h-${k}"></button></div>`).join('')
-    + `<div class="row"><span><i class="av b-coin">鐵</i><span>연장 벼리기 <b id="w-tool">1</b>단<small>손으로 모으는 양 +1</small></span></span><button id="h-tool"></button></div>`;
+  $('gather').innerHTML = `<b>손으로 모으기</b>`+RK.map(k=>`<button data-g="${k}"><i class="b-${k}">${RES[k].h}</i>${RES[k].n} <span id="g-${k}"></span></button>`).join('')+`<button id="h-tool" class="tool"></button>`;
   $('dots').innerHTML = STAGES.map(()=>'<span></span>').join('');
   // 가구 목록 (작은 그림 포함)
   $('cat').innerHTML = ITEMS.map(it=>`<button data-i="${it.id}" data-out="${it.out?1:0}"><canvas width="120" height="120"></canvas><span>${it.n}</span><small>${it.p}전 · 품격 +${it.pt}</small></button>`).join('');
   document.querySelectorAll('#cat button').forEach(b=>{ const it=IT[b.dataset.i], x=b.querySelector('canvas').getContext('2d');
     c=x; c.setTransform(2,0,0,2,0,0); c.translate(30,54); const s=Math.min(50/it.w,48/it.h); c.scale(s,s); it.draw(0,{}); c=main; });
-  $('gather').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; S.res[b.dataset.g]+=clickGain(); const f=document.createElement('span'); f.className='pop'; f.textContent='+'+clickGain(); b.appendChild(f); setTimeout(()=>f.remove(),600); refresh(); });
-  $('workers').addEventListener('click',e=>{
-    const b=e.target.closest('button'); if(!b) return;
-    if(b.id==='h-tool'){ const p=toolCost(); if(S.coin>=p){ S.coin-=p; S.tool++; } }
-    else { const k=b.dataset.h, p=hireCost(k); if(S.coin>=p){ S.coin-=p; S.workers[k]++; } }
-    refresh(); save();
-  });
+  $('gather').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b || b.disabled) return;
+    if(b.id==='h-tool'){ const c0=toolCost(); if(S.coin>=c0){ S.coin-=c0; S.tool++; sfx('hire'); save(); } refresh(); return; }
+    S.res[b.dataset.g]+=clickGain(); sfx('gather'); const f=document.createElement('span'); f.className='pop'; f.textContent='+'+clickGain(); b.appendChild(f); setTimeout(()=>f.remove(),600); refresh(); });
+  $('crew').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b || b.disabled) return;
+    const k=b.dataset.h, c0=hireCost(k); if(S.coin>=c0){ S.coin-=c0; S.workers[k]++; sfx('hire'); toast(`${RES[k].job} 한 명이 일을 시작했습니다 · ${RES[k].n} 초당 +${RES[k].rate}`); } refresh(); save(); });
+  $('mute').addEventListener('click',()=>{ S.mute=!S.mute; if(!S.mute) sfx('tick'); refresh(); save(); });
   $('nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b || mg) return; S.at=+b.dataset.at; sel=-1; pan=0; S.inside=false; renderDesign(); refresh(); save(); });
   $('dOpts').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b || b.disabled) return;
     const d=S.cur.d, k=b.dataset.k, v=+b.dataset.v; d[k]=v;
@@ -913,7 +993,7 @@ function buildUI(){
   addEventListener('keydown',e=>{ if(e.code==='Space' && mg && !titleOn){ e.preventDefault(); drop(); } });
   $('reset').addEventListener('click',()=>{ if(confirm('지금까지 지은 집과 자재가 모두 사라집니다. 처음부터 다시 할까요?')){ S=fresh(); mg=null; sel=-1; save(); renderDesign(); refresh(); } });
   $('mNext').addEventListener('click',()=>{ $('modal').classList.remove('on'); refresh(); });
-  const enter=()=>{ titleOn=false; $('title').hidden=true; fit(); refresh(); };
+  const enter=()=>{ sfx('tick'); titleOn=false; $('title').hidden=true; fit(); refresh(); };
   $('tGo').addEventListener('click',enter);
   $('tNew').addEventListener('click',()=>{ if(confirm('지금까지 지은 집과 자재가 모두 사라집니다. 처음부터 새로 시작할까요?')){ S=fresh(); mg=null; sel=-1; save(); renderDesign(); enter(); } });
   $('toTitle').addEventListener('click',()=>{ if(mg) return; titleOn=true; $('title').hidden=false; titleBtns(); $('title').scrollTop=0; fit(); });
@@ -934,8 +1014,8 @@ function sideHTML(m){
     const rows=Object.keys(cnt).map(id=>`<li><b>${cnt[id]}</b><span>${IT[id].n}</span><em>품격 +${IT[id].pt*cnt[id]}</em></li>`).join('');
     return `<h2>살림 장부<span>${houseName(h.d)}</span></h2><ol>${rows||'<li><b>·</b><span>아직 들인 살림이 없습니다</span></li>'}</ol>
       <div class="sum">품격 ${grace(h)} · 손님이 초당 ${houseRate(h).toFixed(1)}전을 냅니다. 가구를 들일수록 수입이 늘어납니다.</div>`; }
-  const cu=S.cur, d=cu.d, mlt=mult(d), from=m==='build'?cu.stage:0, tot={};
-  const rows=STAGES.map((_,i)=>{ const st=stageInfo(i,d), cost={}; for(const k in st.cost) cost[k]=Math.round(st.cost[k]*mlt);
+  const cu=S.cur, d=cu.d, from=m==='build'?cu.stage:0, tot={};
+  const rows=STAGES.map((_,i)=>{ const st=stageInfo(i,d), cost=costOf(i,d);
     const done=m==='build'&&i<cu.stage, cur=m==='build'&&i===cu.stage;
     if(i>=from) for(const k in cost) tot[k]=(tot[k]||0)+cost[k];
     return `<li class="${done?'done':cur?'cur':''}"><b>${done?'✓':i+1}</b><span>${st.n}</span><em>${done?'솜씨 '+Math.round(cu.quals[i]*100):''}</em><div class="need">${needHTML(cost,cur)}</div></li>`; }).join('');
@@ -943,20 +1023,19 @@ function sideHTML(m){
     <div class="sum">${m==='build'?'남은 공정에 드는 자재':'집 한 채에 드는 자재'}<div class="need">${needHTML(tot,true)}</div></div>`;
 }
 function crewHTML(){ const n=RK.reduce((a,k)=>a+S.workers[k],0);
-  return `<b>일꾼 ${n}명</b>`+RK.map(k=>`<span class="${S.workers[k]?'':'zero'}"><img src="${imgSrc(k)}" alt="" width="28" height="28">${RES[k].job} <strong>${S.workers[k]}</strong></span>`).join(''); }
+  return `<b>일꾼 ${n}명</b>`+RK.map(k=>{ const c0=hireCost(k);
+    return `<button class="job${S.workers[k]?'':' zero'}" data-h="${k}" ${S.coin<c0?'disabled':''} title="${RES[k].n} 초당 ${RES[k].rate}"><img src="${imgSrc(k)}" alt="" width="34" height="34"><span>${RES[k].job} <strong>${S.workers[k]}</strong><small>고용 ${fmt(c0)}전</small></span></button>`; }).join(''); }
 function refresh(){
   const m=mode();
   for(const k of RK){
     $('r-'+k).textContent = fmt(S.res[k]);
     const r=S.workers[k]*RES[k].rate; $('rr-'+k).textContent = r? '+'+(+r.toFixed(1))+'/초':'';
     $('g-'+k).textContent = '+'+clickGain();
-    $('w-'+k).textContent = S.workers[k];
-    const p=hireCost(k), b=$('h-'+k); b.textContent='고용 '+fmt(p)+'전'; b.disabled = S.coin<p;
   }
   $('r-coin').textContent = fmt(S.coin);
   const cr=coinRate(); $('rr-coin').textContent = cr? '+'+cr.toFixed(1)+'/초':'';
-  $('w-tool').textContent = S.tool;
-  const tb=$('h-tool'); tb.textContent='벼리기 '+fmt(toolCost())+'전'; tb.disabled = S.coin<toolCost();
+  const tb=$('h-tool'); tb.textContent=`연장 ${S.tool}단 → 벼리기 ${fmt(toolCost())}전`; tb.title='손으로 모으는 양이 1 늘어납니다'; tb.disabled = S.coin<toolCost();
+  $('mute').textContent = S.mute ? '소리 켜기' : '소리 끄기';
   $('title2').textContent = S.houses.length ? `완공 ${S.houses.length}채 · 손님들이 초당 ${cr.toFixed(1)}전을 냅니다` : '첫 집을 완공하면 손님이 들어 엽전이 쌓이기 시작합니다';
   const sig=S.houses.map(h=>houseName(h.d)).join('|')+S.at+S.cur.locked+S.cur.stage+!!mg;
   if(sig!==navSig){ navSig=sig;
@@ -974,14 +1053,14 @@ function refresh(){
     const ph=imgSrc(st===THATCH?'s7t':'s'+(S.cur.stage+1)), im=$('stImg'); if(im.getAttribute('src')!==ph){ im.src=ph; im.alt=st.n+' 장면'; }
     $('stCost').innerHTML = Object.keys(cost).map(k=>`<span class="chip${S.res[k]<cost[k]?' lack':''}"><i class="b-${k}">${RES[k].h}</i>${RES[k].n} ${fmt(Math.min(S.res[k],cost[k]))}/${fmt(cost[k])}</span>`).join('');
     const bb=$('build'); bb.disabled = !!mg || !canBuild(); bb.textContent = mg ? '공사 중…' : '착공';
-    document.querySelectorAll('#gather button').forEach(b=>b.classList.toggle('need', cost[b.dataset.g]!==undefined && S.res[b.dataset.g]<cost[b.dataset.g]));
+    document.querySelectorAll('#gather button[data-g]').forEach(b=>b.classList.toggle('need', cost[b.dataset.g]!==undefined && S.res[b.dataset.g]<cost[b.dataset.g]));
     [...$('dots').children].forEach((el,i)=>{ el.className = i===S.cur.stage ? 'cur' : '';
       el.style.background = i<S.cur.stage ? (S.cur.quals[i]>=.9?'#b5422c':S.cur.quals[i]>=.6?'#3f7a5a':'#8a8377') : ''; });
-  } else document.querySelectorAll('#gather button').forEach(b=>b.classList.remove('need'));
+  } else document.querySelectorAll('#gather button[data-g]').forEach(b=>b.classList.remove('need'));
   if(m==='deco'){
     const h=curHouse(), p=Math.round(h.q*100);
     $('hName').innerHTML = `${houseName(h.d)}<span>${p>=90?'국보급':p>=75?'명품 한옥':p>=55?'반듯한 집':'소박한 집'}</span>`;
-    $('hInfo').textContent = `솜씨 ${p}점 · 품격 ${grace(h)} · 가구 ${h.items.length}점 · 초당 ${houseRate(h).toFixed(1)}전`;
+    $('hInfo').textContent = `솜씨 ${p}점 · 품격 ${grace(h)} · 살림 ${h.items.length}점 · 손님 ${guestCount(h)}명 · 초당 ${houseRate(h).toFixed(1)}전`;
     $('vOut').classList.toggle('on',!S.inside); $('vIn').classList.toggle('on',S.inside);
     document.querySelectorAll('#cat button').forEach(b=>{ b.hidden = (b.dataset.out==='1')===S.inside; b.disabled = S.coin<IT[b.dataset.i].p; });
     const it=h.items[sel];
@@ -996,7 +1075,7 @@ function buy(id){
   const h=curHouse(), def=IT[id]; if(!h || !def) return;
   if(S.coin<def.p){ toast('엽전이 모자랍니다'); return; }
   if(h.items.length>=60){ toast('이 집에는 더 놓을 자리가 없습니다'); return; }
-  S.coin-=def.p; const g=geo(h.d);
+  S.coin-=def.p; sfx('coin'); const g=geo(h.d);
   const it = def.out ? {id,x:Math.round(-150+Math.random()*300),y:Math.round(50+Math.random()*40),f:0} : {id,x:0,y:0,f:0};
   if(!def.out){ const v=view(); it.x=clampX(def,g,(400-v.ox)/v.z-40+Math.random()*80); }
   h.items.push(it); sel=h.items.length-1; refresh(); save();
@@ -1024,47 +1103,62 @@ function onMove(e){
   if(def.out){ it.x=Math.max(-392+v.ox-400, Math.min(392+v.ox-400+16, lx+drag.dx)); it.y=Math.max(6,Math.min(112,ly+drag.dy)); }
   else it.x=clampX(def,v.g,lx+drag.dx);
 }
-function onUp(){ if(drag){ const moved=drag.sx===undefined; drag=null; if(moved) save(); } }
+function onUp(){ if(drag){ const moved=drag.sx===undefined; drag=null; if(moved){ sfx('place'); save(); } } }
 
-/* ---------- 미니게임: 먹줄에 맞춰 내려놓기 ---------- */
-const SWING=250;
+/* ---------- 미니게임: 먹줄 맞추기 · 달구질 · 눈금 맞추기 ---------- */
+const SWING=250, MGT=[1,0,1,0,0,2,2,0,1,1];
+const MGHINT=['먹줄(가운데 점선)에 맞춰 내려놓으세요','고리가 붉은 과녁에 겹치는 순간 내리치세요','눈금이 붉은 띠에 들어올 때 멈추세요'];
+function setRound(){
+  mg.fall=null;
+  if(mg.type===0){ mg.dir=Math.random()<.5?-1:1; mg.x=-mg.dir*SWING; }
+  else if(mg.type===1){ mg.v=1; mg.dir=-1; }
+  else { mg.v=0; mg.dir=1; mg.band=.3+Math.random()*.5; }
+}
 function startStage(){
   if(mg || mode()!=='build' || !canBuild()) return;
-  mg = {round:0, x:-SWING, dir:1, speed:300+S.cur.stage*22, fall:null, scores:[], wait:0};
-  refresh();
-  toast('먹줄(가운데 점선)에 맞춰 '+stageInfo(S.cur.stage,S.cur.d).p+'을(를) 내려놓으세요');
+  mg = {type:MGT[S.cur.stage], round:0, x:0, v:0, band:.5, dir:1, speed:300+S.cur.stage*14, fall:null, scores:[], wait:0};
+  setRound(); sfx('tick'); refresh();
 }
 function drop(){
   if(!mg || mg.fall || mg.wait>0) return;
-  const off=Math.abs(mg.x);
-  mg.fall = {y:78, score: off<=8 ? 1 : Math.max(0, 1-(off-8)/150)};
-  refresh();
+  let sc;
+  if(mg.type===0){ const off=Math.abs(mg.x); sc = off<=10 ? 1 : Math.max(0, 1-(off-10)/150); }
+  else if(mg.type===1){ const off=Math.abs(mg.v-.28); sc = off<=.05 ? 1 : Math.max(0, 1-(off-.05)/.45); }
+  else { const off=Math.abs(mg.v-mg.band); sc = off<=.045 ? 1 : Math.max(0, 1-(off-.045)/.3); }
+  mg.fall = {y:78, score:sc}; sfx('drop'); refresh();
 }
 function tickMG(dt){
   if(!mg) return;
   if(mg.wait>0){ mg.wait-=dt; if(mg.wait<=0) nextRound(); return; }
   if(mg.fall){
-    mg.fall.y += 900*dt;
     const st=stageInfo(S.cur.stage,S.cur.d), land=st.land - st.sz[1]/2;
-    if(mg.fall.y>=land){
-      mg.fall.y=land; const sc=mg.fall.score; mg.scores.push(sc);
-      floats.push({x:400+mg.x, y:land-30, t:0, txt: sc>=.95?'딱 맞았다!':sc>=.7?'좋아요':sc>=.4?'조금 비뚤':'어긋났다', col: sc>=.95?'#b5422c':sc>=.7?'#2f6b4c':'#5b544c'});
-      mg.wait=.55;
+    mg.fall.y += 900*dt;
+    if(mg.type!==0 || mg.fall.y>=land){
+      if(mg.type===0) mg.fall.y=land;
+      const sc=mg.fall.score; mg.scores.push(sc); sfx(sc>=.95?'good':'thud');
+      floats.push({x:mg.type===0?400+mg.x:400, y:mg.type===0?land-30:mg.type===1?120:150, t:0, txt: sc>=.95?'딱 맞았다!':sc>=.7?'좋아요':sc>=.4?'조금 비뚤':'어긋났다', col: sc>=.95?'#b5422c':sc>=.7?'#2f6b4c':'#5b544c'});
+      mg.wait=.6;
     }
     return;
   }
-  mg.x += mg.dir*mg.speed*dt;
-  if(mg.x>SWING){ mg.x=SWING; mg.dir=-1; } else if(mg.x<-SWING){ mg.x=-SWING; mg.dir=1; }
+  if(mg.type===0){ mg.x += mg.dir*mg.speed*dt; if(mg.x>SWING){ mg.x=SWING; mg.dir=-1; } else if(mg.x<-SWING){ mg.x=-SWING; mg.dir=1; } }
+  else { mg.v += mg.dir*dt*(mg.type===1?.72:.9)*mg.speed/300; if(mg.v>1){ mg.v=1; mg.dir=-1; } else if(mg.v<0){ mg.v=0; mg.dir=1; } }
+}
+// 공정 하나를 끝낸다: 자재를 쓰고 품삯을 받는다
+function completeStage(q){
+  const cu=S.cur, name=stageInfo(cu.stage,cu.d).n;
+  const cost=stageCost(); for(const k in cost) S.res[k]=Math.max(0,S.res[k]-cost[k]);
+  const pay = stagePay(cu.stage,cu.d,q);
+  S.coin += pay; cu.quals[cu.stage]=q; cu.stage++;
+  return {pay,name,done:cu.stage>=STAGES.length};
 }
 function nextRound(){
-  mg.round++; mg.fall=null;
-  if(mg.round<3){ mg.speed+=45; mg.x = (Math.random()<.5?-1:1)*SWING; mg.dir = mg.x<0?1:-1; refresh(); return; }
-  const q = mg.scores.reduce((a,b)=>a+b,0)/mg.scores.length, cu=S.cur, name=stageInfo(cu.stage,cu.d).n;
-  const cost=stageCost(); for(const k in cost) S.res[k]=Math.max(0,S.res[k]-cost[k]);
-  const pay = Math.round(25*(cu.stage+1)*mult(cu.d)*(0.5+q));
-  S.coin += pay; cu.quals[cu.stage]=q; cu.stage++; mg=null; bump();
-  floats.push({x:410,y:150,t:0,txt:'품삯 +'+pay+'전',col:'#6a4a08',coin:1});
-  if(cu.stage>=STAGES.length) finishHouse(); else toast(`${name} 완료 · 솜씨 ${Math.round(q*100)}점 · 품삯 ${pay}전`);
+  mg.round++;
+  if(mg.round<3){ mg.speed+=40; setRound(); refresh(); return; }
+  const q = mg.scores.reduce((a,b)=>a+b,0)/mg.scores.length;
+  const r = completeStage(q); mg=null; bump();
+  floats.push({x:410,y:150,t:0,txt:'품삯 +'+r.pay+'전',col:'#6a4a08',coin:1});
+  if(r.done){ sfx('house'); finishHouse(); } else { sfx('stage'); toast(`${r.name} 완료 · 솜씨 ${Math.round(q*100)}점 · 품삯 ${r.pay}전`); }
   save(); refresh();
 }
 function finishHouse(){
@@ -1082,6 +1176,7 @@ let prev=0, uiAcc=0, saveAcc=0, coinT=0, titleOn=true;
 function frame(now){
   const dt=Math.min(.1,(now-prev)/1000||0); prev=now;
   S.play+=dt; produce(dt); tickMG(dt);
+  { const live=!titleOn && mode()==='build'; for(const k of RK) popAcc[k] = live ? popAcc[k]+S.workers[k]*RES[k].rate*dt : 0; }
   floats.forEach(f=>f.t+=dt); floats=floats.filter(f=>f.t<(f.coin?1.8:1.1));
   coinT+=dt; if(coinT>2.5){ const r=coinRate(); if(r>0 && !titleOn){ const dm=mode()==='deco';
     floats.push({x:dm?410:680,y:dm?112:74,t:0,txt:'+'+fmt(Math.max(1,r*coinT))+'전',col:'#6a4a08',coin:1}); bump(); } coinT=0; }
